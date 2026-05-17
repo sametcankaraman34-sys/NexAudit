@@ -1,5 +1,9 @@
+"use client";
+
 import { ArrowUpRight, Check, Lock, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useActiveProject } from "@/lib/project-context";
 import { AUDIT_PHASE_ORDER, AUDIT_PHASE_SHORT_LABELS } from "@/constants/audit";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
@@ -46,7 +50,15 @@ export function ProjectWorkspaceCard({
   project,
   animationIndex = 0,
 }: ProjectWorkspaceCardProps) {
+  const router = useRouter();
+  const { activeProjectId, setActiveProjectId } = useActiveProject();
+  const isActiveWorkspace = activeProjectId === project.id;
   const baseDelay = animationIndex * 70;
+
+  const activateProject = () => {
+    setActiveProjectId(project.id);
+    router.push("/");
+  };
   const chartId = `proj-chart-${project.id}`;
   const completion = Math.round(
     project.phases.reduce((s, p) => s + p.progress, 0) / project.phases.length,
@@ -66,7 +78,12 @@ export function ProjectWorkspaceCard({
 
   return (
     <article
-      className="card-interactive group page-enter flex h-full min-h-[180px] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]"
+      className={cn(
+        "card-interactive group page-enter flex h-full min-h-[180px] flex-col overflow-hidden rounded-xl border bg-[var(--surface)] shadow-[var(--shadow-card)] transition-[border-color,box-shadow]",
+        isActiveWorkspace
+          ? "border-[var(--primary)]/40 shadow-[0_0_0_1px_rgba(99,102,241,0.12),var(--shadow-card)]"
+          : "border-[var(--border)]",
+      )}
       style={{ animationDelay: `${baseDelay}ms` }}
     >
       <div className="grid flex-1 grid-cols-[minmax(0,1fr)_minmax(124px,34%)] gap-4 p-4">
@@ -142,13 +159,36 @@ export function ProjectWorkspaceCard({
         </aside>
       </div>
 
-      <Link
-        href={`/project-detail?id=${project.id}`}
-        className="btn-transition flex w-full items-center justify-center gap-1.5 py-3 text-sm font-medium text-[var(--primary)] hover:bg-[var(--primary-soft)]/60"
-      >
-        Detayları gör
-        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-      </Link>
+      <div className="grid grid-cols-2 border-t border-[var(--border)]">
+        <button
+          type="button"
+          onClick={activateProject}
+          disabled={isActiveWorkspace}
+          className={cn(
+            "btn-transition flex items-center justify-center gap-1.5 py-3 text-sm font-medium",
+            isActiveWorkspace
+              ? "cursor-default bg-[var(--primary-soft)]/50 text-[var(--primary)]"
+              : "text-[var(--text-primary)] hover:bg-[var(--surface-soft)]",
+          )}
+        >
+          {isActiveWorkspace ? (
+            <>
+              <Check className="h-4 w-4" strokeWidth={2} />
+              Aktif workspace
+            </>
+          ) : (
+            "Bu projeye geç"
+          )}
+        </button>
+        <Link
+          href={`/project-detail?id=${project.id}`}
+          onClick={() => setActiveProjectId(project.id)}
+          className="btn-transition flex items-center justify-center gap-1.5 border-l border-[var(--border)] py-3 text-sm font-medium text-[var(--primary)] hover:bg-[var(--primary-soft)]/60"
+        >
+          Detayları gör
+          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </Link>
+      </div>
     </article>
   );
 }

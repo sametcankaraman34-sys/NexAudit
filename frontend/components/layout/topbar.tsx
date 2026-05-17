@@ -14,7 +14,7 @@ interface TopbarProps {
 
 export function Topbar({ onMenuClick, showMenuButton = false }: TopbarProps) {
   return (
-    <header className="shrink-0 border-b border-[var(--border)] bg-[var(--surface)]">
+    <header className="relative z-20 shrink-0 overflow-visible border-b border-[var(--border)] bg-[var(--surface)]">
       <div className="flex h-[var(--topbar-height)] items-center gap-2 px-4 sm:gap-3 sm:px-6">
         {showMenuButton && (
           <button

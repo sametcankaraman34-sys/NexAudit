@@ -51,7 +51,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const setActiveProjectId = useCallback((id: string) => {
     if (!mockProjects.some((p) => p.id === id)) return;
-    setActiveProjectIdState((current) => (current === id ? current : id));
+    setActiveProjectIdState(id);
   }, []);
 
   useEffect(() => {
