@@ -336,3 +336,21 @@ Türkiye’de WordPress odaklı:
 * brief uyumluluğunu analiz eden
 
 premium bir WordPress denetim platformu oluşturmak.
+
+---
+
+# Vercel Deploy
+
+Next.js uygulaması `frontend/` klasöründedir. Vercel'de proje ayarlarında:
+
+**Settings → General → Root Directory → `frontend`**
+
+olarak ayarlayın. Ardından Framework Preset: **Next.js** seçili olsun.
+
+Yerel build:
+
+```bash
+cd frontend
+npm install
+npm run build
+```
