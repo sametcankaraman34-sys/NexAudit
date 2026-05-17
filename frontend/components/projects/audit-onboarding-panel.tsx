@@ -26,11 +26,14 @@ const pipelineSteps = [
   { label: "Dönüşümü Optimize Et", active: false },
 ];
 
+const phaseStepBaseDelay = 220;
+const briefStepDelay = phaseStepBaseDelay + (AUDIT_PHASE_ORDER.length + 1) * 55;
+
 export function AuditOnboardingPanel() {
   return (
     <aside className="flex h-full flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
-      <div className="mb-6">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-xs font-medium text-[var(--primary)]">
+      <div className="new-project-field mb-6" style={{ animationDelay: "180ms" }}>
+        <span className="new-project-badge inline-flex items-center gap-1.5 rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-xs font-medium text-[var(--primary)]">
           <Sparkles className="h-3.5 w-3.5" />
           Denetim hattı
         </span>
@@ -44,7 +47,10 @@ export function AuditOnboardingPanel() {
       </div>
 
       <div className="mb-6 space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+        <p
+          className="new-project-field text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]"
+          style={{ animationDelay: "240ms" }}
+        >
           Denetim yolculuğu
         </p>
         <ol className="relative space-y-0">
@@ -52,8 +58,14 @@ export function AuditOnboardingPanel() {
             const Icon = phaseIcons[id];
             const isFirst = index === 0;
             const isLast = index === AUDIT_PHASE_ORDER.length - 1;
+            const stepDelay = phaseStepBaseDelay + index * 55;
+
             return (
-              <li key={id} className="relative flex gap-3 pb-4 last:pb-0">
+              <li
+                key={id}
+                className="new-project-step relative flex gap-3 pb-4 last:pb-0"
+                style={{ animationDelay: `${stepDelay}ms` }}
+              >
                 {!isLast && (
                   <span
                     className="absolute left-[15px] top-8 h-[calc(100%-12px)] w-px bg-[var(--border)]"
@@ -90,7 +102,10 @@ export function AuditOnboardingPanel() {
               </li>
             );
           })}
-          <li className="relative flex gap-3 pt-1">
+          <li
+            className="new-project-step relative flex gap-3 pt-1"
+            style={{ animationDelay: `${briefStepDelay}ms` }}
+          >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-secondary)]">
               <ClipboardCheck className="h-4 w-4" strokeWidth={1.75} />
             </span>
@@ -102,7 +117,10 @@ export function AuditOnboardingPanel() {
         </ol>
       </div>
 
-      <div className="mt-auto rounded-xl border border-[var(--border)]/80 bg-[var(--surface-soft)]/80 p-4">
+      <div
+        className="new-project-pipeline mt-auto rounded-xl border border-[var(--border)]/80 bg-[var(--surface-soft)]/80 p-4"
+        style={{ animationDelay: "520ms" }}
+      >
         <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
           Oluşturma sonrası
         </p>

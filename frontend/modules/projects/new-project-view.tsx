@@ -14,14 +14,18 @@ function FormField({
   label,
   hint,
   children,
+  className,
+  style,
 }: {
   id: string;
   label: string;
   hint?: string;
   children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
-    <div className="space-y-2">
+    <div className={cn("new-project-field space-y-2", className)} style={style}>
       <label htmlFor={id} className="block text-sm font-medium text-[var(--text-primary)]">
         {label}
       </label>
@@ -42,16 +46,27 @@ const inputClassName = cn(
 export function NewProjectView() {
   return (
     <>
-      <PageHeader
-        title="Yeni Denetim Başlat"
-        description="Proje bilgilerini girin ve profesyonel web denetim sürecinizi başlatın."
-      />
+      <div className="new-project-header">
+        <PageHeader
+          title="Yeni Denetim Başlat"
+          description="Proje bilgilerini girin ve profesyonel web denetim sürecinizi başlatın."
+        />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-start">
-        <AuditOnboardingPanel />
+        <div className="new-project-panel-left">
+          <AuditOnboardingPanel />
+        </div>
 
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] lg:p-7">
-          <div className="mb-6 border-b border-[var(--border)]/80 pb-5">
+        <section
+          className={cn(
+            "new-project-panel-right rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] lg:p-7",
+          )}
+        >
+          <div
+            className="new-project-field mb-6 border-b border-[var(--border)]/80 pb-5"
+            style={{ animationDelay: "200ms" }}
+          >
             <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
               Adım 1 · Proje tanımı
             </p>
@@ -64,7 +79,7 @@ export function NewProjectView() {
           </div>
 
           <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-            <FormField id="name" label="Proje Adı" hint="Ekip içinde tanınacak isim">
+            <FormField id="name" label="Proje Adı" hint="Ekip içinde tanınacak isim" style={{ animationDelay: "260ms" }}>
               <Input
                 id="name"
                 placeholder="Örn: Ajans Demo Projesi"
@@ -77,6 +92,7 @@ export function NewProjectView() {
               id="domain"
               label="Domain"
               hint="Denetlenecek web sitesi adresi — WordPress otomatik algılanır"
+              style={{ animationDelay: "320ms" }}
             >
               <Input
                 id="domain"
@@ -87,7 +103,7 @@ export function NewProjectView() {
               />
             </FormField>
 
-            <FormField id="client" label="Müşteri / Firma Adı">
+            <FormField id="client" label="Müşteri / Firma Adı" style={{ animationDelay: "380ms" }}>
               <Input
                 id="client"
                 placeholder="Örn: Ajans Demo"
@@ -96,22 +112,30 @@ export function NewProjectView() {
               />
             </FormField>
 
-            <PremiumSelect
-              id="sector"
-              label="Sektör"
-              hint="Sektöre göre denetim öncelikleri özelleştirilir"
-              placeholder="Sektör seçin"
-              options={PROJECT_SECTORS}
-            />
+            <div className="new-project-field" style={{ animationDelay: "440ms" }}>
+              <PremiumSelect
+                id="sector"
+                label="Sektör"
+                hint="Sektöre göre denetim öncelikleri özelleştirilir"
+                placeholder="Sektör seçin"
+                options={PROJECT_SECTORS}
+              />
+            </div>
 
-            <div className="rounded-xl border border-[var(--primary)]/15 bg-[var(--primary-soft)]/50 px-4 py-3">
+            <div
+              className="new-project-field rounded-xl border border-[var(--primary)]/15 bg-[var(--primary-soft)]/50 px-4 py-3"
+              style={{ animationDelay: "500ms" }}
+            >
               <p className="flex items-start gap-2 text-xs leading-relaxed text-[var(--text-primary)]">
                 <Radar className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" strokeWidth={1.75} />
                 Oluşturma sonrası ilk tarama kuyruğa alınır; Web Tasarım denetimi otomatik başlar.
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
+            <div
+              className="new-project-actions flex flex-col gap-3 pt-2 sm:flex-row sm:items-center"
+              style={{ animationDelay: "560ms" }}
+            >
               <button
                 type="submit"
                 className={cn(
