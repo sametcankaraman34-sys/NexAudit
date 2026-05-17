@@ -19,12 +19,18 @@ const phaseIcons: Record<AuditPhaseId, typeof Monitor> = {
 };
 
 const pipelineSteps = [
-  { label: "Proje Oluştur", active: true },
-  { label: "Denetimi Başlat", active: false },
-  { label: "İçgörü Üret", active: false },
-  { label: "SEO Aşamasını Aç", active: false },
-  { label: "Dönüşümü Optimize Et", active: false },
+  { label: "Projeyi kur", active: true },
+  { label: "İlk taramayı başlat", active: false },
+  { label: "İçgörüleri topla", active: false },
+  { label: "SEO'ya geç", active: false },
+  { label: "Dönüşümü güçlendir", active: false },
 ];
+
+const phaseHints: Record<AuditPhaseId, string> = {
+  website: "Oluşturduktan sonra buradan başlarız",
+  seo: "Web turu bitince açılır",
+  ads: "SEO oturunca devreye girer",
+};
 
 const phaseStepBaseDelay = 220;
 const briefStepDelay = phaseStepBaseDelay + (AUDIT_PHASE_ORDER.length + 1) * 55;
@@ -35,14 +41,14 @@ export function AuditOnboardingPanel() {
       <div className="new-project-field mb-6" style={{ animationDelay: "180ms" }}>
         <span className="new-project-badge inline-flex items-center gap-1.5 rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-xs font-medium text-[var(--primary)]">
           <Sparkles className="h-3.5 w-3.5" />
-          Denetim hattı
+          Denetim asistanı
         </span>
         <h2 className="mt-3 text-lg font-semibold leading-snug text-[var(--text-primary)]">
-          Profesyonel web denetimi burada başlar
+          Sitenin kalite turu burada başlar
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
-          Projenizi oluşturduğunuzda NexAudit, sitenizi aşamalı bir kalite kontrol sürecine
-          alır. WordPress sürümü ve altyapı otomatik tespit edilir.
+          Projeyi eklediğinde NexAudit seni adım adım yönlendirir — tasarım, SEO ve dönüşüm
+          tek bir akışta ilerler.
         </p>
       </div>
 
@@ -51,7 +57,7 @@ export function AuditOnboardingPanel() {
           className="new-project-field text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]"
           style={{ animationDelay: "240ms" }}
         >
-          Denetim yolculuğu
+          Sıradaki adımlar
         </p>
         <ol className="relative space-y-0">
           {AUDIT_PHASE_ORDER.map((id, index) => {
@@ -95,9 +101,7 @@ export function AuditOnboardingPanel() {
                   >
                     {AUDIT_PHASE_LABELS[id]}
                   </p>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    {isFirst ? "İlk aşama — oluşturma sonrası başlar" : "Önceki aşama tamamlanınca açılır"}
-                  </p>
+                  <p className="text-xs text-[var(--text-secondary)]">{phaseHints[id]}</p>
                 </div>
               </li>
             );
@@ -110,8 +114,10 @@ export function AuditOnboardingPanel() {
               <ClipboardCheck className="h-4 w-4" strokeWidth={1.75} />
             </span>
             <div className="min-w-0 flex-1 pt-0.5">
-              <p className="text-sm font-medium text-[var(--text-secondary)]">Brief Uygunluğu</p>
-              <p className="text-xs text-[var(--text-secondary)]">Müşteri brief&apos;i ile karşılaştırma</p>
+              <p className="text-sm font-medium text-[var(--text-secondary)]">Brief uygunluğu</p>
+              <p className="text-xs text-[var(--text-secondary)]">
+                Müşteri brief&apos;i ile siteyi yan yana görürsün
+              </p>
             </div>
           </li>
         </ol>
@@ -122,7 +128,7 @@ export function AuditOnboardingPanel() {
         style={{ animationDelay: "520ms" }}
       >
         <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
-          Oluşturma sonrası
+          Oluşturduktan sonra
         </p>
         <div className="flex flex-wrap items-center gap-1.5 text-sm">
           {pipelineSteps.map((step, i) => (

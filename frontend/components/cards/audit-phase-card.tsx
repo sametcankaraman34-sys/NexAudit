@@ -1,10 +1,10 @@
 "use client";
 
-import { Lock, Monitor, Megaphone, Search, Trophy } from "lucide-react";
+import { ArrowRight, Lock, Monitor, Megaphone, Search, Trophy } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/feedback/progress-bar";
 import { NexToast } from "@/lib/nex-toast";
+import { getAuditFinalMessage, getPhaseCardCopy } from "@/lib/phase-copy";
 import { cn } from "@/lib/utils";
 import type { AuditPhase } from "@/types";
 
@@ -14,27 +14,35 @@ const phaseIcons = {
   ads: Megaphone,
 };
 
-const phaseLinks = {
-  website: "/website-audit",
-  seo: "/seo-audit",
-  ads: "/ads-audit",
-} as const;
-
 interface AuditPhaseCardProps {
   phase: AuditPhase;
+  allPhases?: AuditPhase[];
   showConnector?: boolean;
   compact?: boolean;
 }
 
-export function AuditPhaseCard({ phase, showConnector, compact }: AuditPhaseCardProps) {
+export function AuditPhaseCard({
+  phase,
+  allPhases,
+  showConnector,
+  compact,
+}: AuditPhaseCardProps) {
+  const phases = allPhases ?? [phase];
+  const copy = getPhaseCardCopy(phase, phases);
   const Icon = phaseIcons[phase.id];
   const isLocked = phase.status === "locked";
   const isCompleted = phase.status === "completed";
-  const href = phaseLinks[phase.id];
+  const isActive = phase.status === "active";
 
   const handlePhaseAction = () => {
-    if (isLocked || isCompleted) return;
-    NexToast.auditStarted(phase.title, href);
+    if (copy.ctaDisabled) return;
+    if (isCompleted && copy.ctaVariant === "success") {
+      NexToast.success("Sıradaki adıma hazırsın", copy.statusLine);
+      return;
+    }
+    if (!isLocked) {
+      NexToast.auditStarted(phase.title, copy.ctaHref);
+    }
   };
 
   return (
@@ -47,21 +55,21 @@ export function AuditPhaseCard({ phase, showConnector, compact }: AuditPhaseCard
       )}
       <article
         className={cn(
-          "card-interactive locked-fade flex flex-col rounded-xl border shadow-[var(--shadow-card)]",
+          "card-interactive phase-card flex flex-col rounded-xl border shadow-[var(--shadow-card)]",
           compact ? "p-3.5" : "h-full rounded-2xl p-5",
-          isLocked
-            ? "border-[var(--border)] bg-[var(--surface-soft)] opacity-80"
-            : "border-[var(--primary)]/20 bg-[var(--surface)]",
+          isLocked && "phase-card-locked border-[var(--border)] bg-[var(--surface-soft)] opacity-90",
+          isCompleted && "phase-card-done border-[var(--success)]/25 bg-[var(--surface)]",
+          isActive && "border-[var(--primary)]/25 bg-[var(--surface)]",
         )}
       >
         <div className="mb-2.5 flex items-start gap-2.5">
           <div
             className={cn(
-              "flex shrink-0 items-center justify-center rounded-lg",
+              "flex shrink-0 items-center justify-center rounded-lg transition-transform duration-300",
               compact ? "h-8 w-8" : "mb-4 h-11 w-11 rounded-xl",
-              isLocked
-                ? "bg-[var(--surface-soft)] text-[var(--text-secondary)]"
-                : "bg-[var(--primary-soft)] text-[var(--primary)]",
+              isLocked && "bg-[var(--surface-soft)] text-[var(--text-secondary)]",
+              isCompleted && "bg-[var(--success-soft)] text-[var(--success)]",
+              isActive && "bg-[var(--primary-soft)] text-[var(--primary)]",
             )}
           >
             {isLocked ? (
@@ -84,49 +92,72 @@ export function AuditPhaseCard({ phase, showConnector, compact }: AuditPhaseCard
                 "text-[var(--text-secondary)]",
                 compact
                   ? "mt-0.5 line-clamp-2 text-xs leading-relaxed"
-                  : "mb-4 flex-1 text-xs leading-relaxed",
+                  : "mb-2 flex-1 text-xs leading-relaxed",
               )}
             >
-              {phase.description}
+              {copy.description}
             </p>
+            {copy.statusLine && (
+              <p
+                className={cn(
+                  "mt-1.5 text-xs leading-relaxed text-[var(--text-primary)]/85",
+                  isCompleted && "text-[var(--success)]",
+                )}
+              >
+                {copy.statusLine}
+              </p>
+            )}
           </div>
         </div>
 
         <div className={compact ? "mb-2.5" : "mb-4"}>
           <div className="mb-1 flex justify-between text-xs sm:text-sm">
-            <span className="text-[var(--text-secondary)]">İlerleme</span>
-            <span className="font-medium text-[var(--text-primary)]">{phase.progress}%</span>
+            <span className="text-[var(--text-secondary)]">{copy.progressLabel}</span>
+            <span className="font-medium tabular-nums text-[var(--text-primary)]">
+              {phase.progress}%
+            </span>
           </div>
           <ProgressBar
             value={phase.progress}
-            barClassName={isLocked ? "bg-[var(--text-secondary)]/30" : undefined}
+            barClassName={
+              isLocked
+                ? "bg-[var(--text-secondary)]/30"
+                : isCompleted
+                  ? "bg-[var(--success)]"
+                  : undefined
+            }
             animated={!isLocked}
           />
         </div>
 
-        {isLocked ? (
-          <Button
+        {copy.ctaDisabled ? (
+          <button
             type="button"
-            variant="outline"
             disabled
             className={cn(
-              "btn-transition w-full rounded-lg border-[var(--border)] bg-[var(--surface)] font-medium",
+              "phase-cta phase-cta-muted inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] font-medium text-[var(--text-secondary)]",
               compact ? "h-8 text-xs" : "h-9 rounded-xl text-xs",
             )}
           >
             <Lock className="h-3 w-3" />
-            Kilidi Aç
-          </Button>
+            {copy.ctaLabel}
+          </button>
         ) : (
           <Link
-            href={href}
+            href={copy.ctaHref}
             onClick={handlePhaseAction}
             className={cn(
-              "btn-transition inline-flex w-full items-center justify-center rounded-lg bg-[var(--primary)] font-medium text-white hover:bg-[var(--primary-hover)]",
+              "phase-cta inline-flex w-full items-center justify-center gap-1.5 rounded-lg font-medium",
               compact ? "h-8 text-xs" : "h-9 rounded-xl text-xs",
+              copy.ctaVariant === "primary" && "phase-cta-primary bg-[var(--primary)] text-white",
+              copy.ctaVariant === "outline" &&
+                "phase-cta-outline border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)]",
+              copy.ctaVariant === "success" &&
+                "phase-cta-success bg-[var(--success)] text-white",
             )}
           >
-            {isCompleted ? "Sonuçları Gör" : "Denetimi Başlat"}
+            {copy.ctaLabel}
+            <ArrowRight className="h-3.5 w-3.5 opacity-80" strokeWidth={2} />
           </Link>
         )}
       </article>
@@ -134,11 +165,18 @@ export function AuditPhaseCard({ phase, showConnector, compact }: AuditPhaseCard
   );
 }
 
-export function AuditFinalCard({ compact }: { compact?: boolean }) {
+interface AuditFinalCardProps {
+  compact?: boolean;
+  allPhases?: AuditPhase[];
+}
+
+export function AuditFinalCard({ compact, allPhases }: AuditFinalCardProps) {
+  const message = allPhases?.length ? getAuditFinalMessage(allPhases) : getAuditFinalMessage([]);
+
   return (
     <article
       className={cn(
-        "card-interactive flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-soft)] text-center",
+        "phase-final-card card-interactive flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-soft)] text-center",
         compact ? "px-3 py-4" : "h-full rounded-2xl p-5",
       )}
     >
@@ -156,7 +194,7 @@ export function AuditFinalCard({ compact }: { compact?: boolean }) {
           compact ? "text-xs" : "text-xs leading-relaxed",
         )}
       >
-        Tüm aşamaları tamamla ve siteni zirveye taşı!
+        {message}
       </p>
     </article>
   );

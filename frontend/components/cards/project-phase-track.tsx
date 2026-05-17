@@ -14,7 +14,7 @@ const statusConfig: Record<
   { label: string; pill: string; icon?: "check" | "lock" }
 > = {
   completed: {
-    label: "Tamamlandı",
+    label: "Tamam",
     pill: "border-[var(--success)]/25 bg-[var(--success-soft)] text-[var(--success)]",
     icon: "check",
   },
@@ -23,7 +23,7 @@ const statusConfig: Record<
     pill: "border-[var(--primary)]/25 bg-[var(--primary-soft)] text-[var(--primary)]",
   },
   locked: {
-    label: "Kilitli",
+    label: "Sırada",
     pill: "border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text-secondary)]",
     icon: "lock",
   },

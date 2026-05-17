@@ -54,9 +54,9 @@ export function LiveEventBridge() {
       scheduleEvent(timers, pathname, "audit-complete", 1600, () =>
         toast({
           variant: "success",
-          title: "Denetim tamamlandı",
-          description: `Web Tasarım Denetimi bitti · skor ${activeProject.overallScore}/100`,
-          action: { label: "Sonuçları gör", href: "/website-audit" },
+          title: "Web turu tamam",
+          description: `Tasarım denetimi bitti · skor ${activeProject.overallScore}/100 — SEO tarafına geçebiliriz.`,
+          action: { label: "SEO'ya geç", href: "/seo-audit" },
         }),
       );
       scheduleEvent(timers, pathname, "critical-meta", 4200, () =>

@@ -10,7 +10,7 @@ import { LandingPageAnalysis } from "@/components/ads-audit/landing-page-analysi
 import { TrackingInfrastructureGrid } from "@/components/ads-audit/tracking-infrastructure-grid";
 import { LockedState } from "@/components/feedback/locked-state";
 import { PageHeader } from "@/components/layout/page-header";
-import { isPhaseLocked, getLockedMessage } from "@/lib/audit-lock";
+import { getLockedScreenCopy, isPhaseLocked } from "@/lib/audit-lock";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function AdsAuditView() {
@@ -18,18 +18,19 @@ export function AdsAuditView() {
   const { adsAudit } = useProjectWorkspace();
 
   if (isPhaseLocked("ads", activeProject.phases)) {
+    const locked = getLockedScreenCopy("ads");
     return (
       <>
         <PageHeader
           title="Reklam & Dönüşüm"
-          description="Dönüşüm hunisi ve reklam performansı analizi."
+          description="Huni, CTA ve reklam izleme — SEO oturunca burada devreye girer."
         />
         <LockedState
-          title="Reklam & Dönüşüm Kilitli"
-          description={getLockedMessage("ads")}
-          unlockHint="SEO Optimizasyonu tamamlandığında bu aşama açılacaktır."
-          actionHref="/seo-audit"
-          actionLabel="SEO Denetimine Git"
+          title={locked.title}
+          description={locked.description}
+          unlockHint={locked.unlockHint}
+          actionHref={locked.actionHref}
+          actionLabel={locked.actionLabel}
         />
       </>
     );

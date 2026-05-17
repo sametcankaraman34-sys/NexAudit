@@ -28,7 +28,7 @@ export function LockedState({
       )}
       <Link
         href={actionHref}
-        className="btn-transition inline-flex items-center rounded-xl bg-[var(--primary)] px-6 py-2.5 text-sm font-medium text-white hover:bg-[var(--primary-hover)]"
+        className="phase-cta phase-cta-primary btn-transition inline-flex items-center gap-1.5 rounded-xl bg-[var(--primary)] px-6 py-2.5 text-sm font-medium text-white hover:bg-[var(--primary-hover)]"
       >
         {actionLabel}
       </Link>

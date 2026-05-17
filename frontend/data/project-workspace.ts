@@ -55,6 +55,7 @@ import {
   websiteMetricFindings,
   websitePerformanceFactors,
 } from "@/data/mock-website-audit";
+import { getPhaseDescription } from "@/lib/phase-copy";
 import { recalculateProjectMetrics } from "@/services/project-metrics";
 import type {
   AuditPhase,
@@ -214,7 +215,7 @@ function mapPhaseToAuditStatus(status: ProjectPhaseState["status"]): AuditPhaseS
 }
 
 function buildAuditPhases(project: Project): AuditPhase[] {
-  return mockAuditPhases.map((phase) => {
+  const phases = mockAuditPhases.map((phase) => {
     const projectPhase = project.phases.find((p) => p.id === phase.id);
     const progress = projectPhase?.progress ?? 0;
     const status = projectPhase
@@ -222,6 +223,10 @@ function buildAuditPhases(project: Project): AuditPhase[] {
       : "locked";
     return { ...phase, status, progress };
   });
+  return phases.map((phase) => ({
+    ...phase,
+    description: getPhaseDescription({ ...phase }),
+  }));
 }
 
 function buildDashboardStats(project: Project, issues: Issue[]): DashboardStat[] {

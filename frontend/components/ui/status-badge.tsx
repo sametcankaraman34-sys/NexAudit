@@ -15,7 +15,7 @@ const labels: Record<StatusVariant, string> = {
   in_progress: "Devam Ediyor",
   resolved: "Çözüldü",
   good: "İyi",
-  locked: "Kilitli",
+  locked: "Sırada",
 };
 
 interface StatusBadgeProps {

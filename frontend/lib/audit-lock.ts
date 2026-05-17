@@ -1,4 +1,5 @@
 import type { AuditPhaseId, AuditPhaseStatus, ProjectPhaseState } from "@/types";
+import { getLockedMessage, getLockedScreenCopy } from "@/lib/phase-copy";
 
 export function getPhaseStatus(
   phaseId: AuditPhaseId,
@@ -18,12 +19,4 @@ export function isPhaseLocked(
   return getPhaseStatus(phaseId, phases) === "locked";
 }
 
-export function getLockedMessage(phaseId: AuditPhaseId): string {
-  if (phaseId === "seo") {
-    return "SEO Optimizasyonu için önce Web Tasarım Denetimi tamamlanmalıdır.";
-  }
-  if (phaseId === "ads") {
-    return "Reklam & Dönüşüm için önce SEO Optimizasyonu tamamlanmalıdır.";
-  }
-  return "Bu aşama henüz kilitli.";
-}
+export { getLockedMessage, getLockedScreenCopy };

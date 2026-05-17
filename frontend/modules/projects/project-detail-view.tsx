@@ -54,11 +54,15 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps) {
 
       <section className="mb-6">
         <h2 className="mb-4 text-ui-section-title font-semibold text-[var(--text-primary)]">
-          Denetim Aşamaları
+          Denetim yolculuğu
         </h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {dashboard.auditPhases.map((phase) => (
-            <AuditPhaseCard key={phase.id} phase={phase} />
+            <AuditPhaseCard
+              key={phase.id}
+              phase={phase}
+              allPhases={dashboard.auditPhases}
+            />
           ))}
         </div>
       </section>

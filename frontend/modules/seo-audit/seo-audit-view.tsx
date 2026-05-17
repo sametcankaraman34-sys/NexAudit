@@ -11,7 +11,7 @@ import { LockedState } from "@/components/feedback/locked-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { ContentQualityPanel } from "@/components/seo-audit/content-quality-panel";
 import { KeywordAnalysisSection } from "@/components/seo-audit/keyword-analysis-section";
-import { isPhaseLocked, getLockedMessage } from "@/lib/audit-lock";
+import { getLockedScreenCopy, isPhaseLocked } from "@/lib/audit-lock";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function SeoAuditView() {
@@ -19,18 +19,19 @@ export function SeoAuditView() {
   const { seoAudit } = useProjectWorkspace();
 
   if (isPhaseLocked("seo", activeProject.phases)) {
+    const locked = getLockedScreenCopy("seo");
     return (
       <>
         <PageHeader
           title="SEO Optimizasyonu"
-          description="Teknik SEO, içerik ve anahtar kelime analizi."
+          description="Teknik SEO, içerik ve anahtar kelime — web tarafı hazır olunca burada."
         />
         <LockedState
-          title="SEO Optimizasyonu Kilitli"
-          description={getLockedMessage("seo")}
-          unlockHint="Web Tasarım Denetimi %100 tamamlandığında bu aşama açılacaktır."
-          actionHref="/website-audit"
-          actionLabel="Web Tasarım Denetimine Git"
+          title={locked.title}
+          description={locked.description}
+          unlockHint={locked.unlockHint}
+          actionHref={locked.actionHref}
+          actionLabel={locked.actionLabel}
         />
       </>
     );

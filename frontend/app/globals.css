@@ -116,6 +116,64 @@
     transition: opacity var(--transition-slow) ease;
   }
 
+  .phase-card {
+    transition:
+      border-color var(--transition-base) ease,
+      box-shadow var(--transition-base) ease,
+      transform var(--transition-base) ease;
+  }
+
+  .phase-card:hover:not(.phase-card-locked) {
+    transform: translateY(-1px);
+  }
+
+  .phase-card-done {
+    box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.08), var(--shadow-card);
+  }
+
+  .phase-cta {
+    transition:
+      transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 200ms ease,
+      background-color var(--transition-base) ease,
+      border-color var(--transition-base) ease;
+  }
+
+  .phase-cta-primary {
+    box-shadow: 0 1px 2px rgba(99, 102, 241, 0.2);
+  }
+
+  .phase-cta-primary:hover {
+    box-shadow: 0 6px 22px rgba(99, 102, 241, 0.32);
+    transform: translateY(-1px);
+  }
+
+  .phase-cta-success {
+    box-shadow: 0 1px 2px rgba(34, 197, 94, 0.2);
+  }
+
+  .phase-cta-success:hover {
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.28);
+    transform: translateY(-1px);
+  }
+
+  .phase-cta-outline:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .phase-final-card {
+    transition:
+      border-color var(--transition-base) ease,
+      background-color var(--transition-slow) ease;
+  }
+
+  .phase-final-card:hover {
+    border-color: var(--primary);
+    background-color: color-mix(in srgb, var(--primary-soft) 40%, var(--surface-soft));
+  }
+
   .text-ui-page-title {
     font-size: var(--text-page-title);
     line-height: 1.25;

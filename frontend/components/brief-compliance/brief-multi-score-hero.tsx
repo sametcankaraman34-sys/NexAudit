@@ -21,7 +21,7 @@ export function BriefMultiScoreHero() {
             <FileCheck className="h-3.5 w-3.5" strokeWidth={1.75} />
             Brief uygunluk motoru
           </span>
-          <StatusBadge variant="good" label="Analiz tamamlandı" />
+          <StatusBadge variant="good" label="Analiz hazır" />
         </div>
 
         <div className="flex w-full flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">

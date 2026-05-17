@@ -23,62 +23,62 @@ export const NexToast = {
   projectCreated(projectName: string) {
     return toast({
       variant: "success",
-      title: "Yeni proje oluşturuldu",
-      description: `${projectName} başarıyla eklendi. Şimdi tarama başlatılabilir.`,
+      title: "Proje hazır",
+      description: `${projectName} eklendi — ilk taramayı birlikte başlatabiliriz.`,
       action: { label: "Projeye git", href: "/projects" },
     });
   },
   auditCompleted(phaseLabel: string, score?: number) {
     return toast({
       variant: "success",
-      title: "Denetim tamamlandı",
+      title: "Tur tamam",
       description:
         score !== undefined
           ? `${phaseLabel} bitti · skor ${score}/100`
-          : `${phaseLabel} analizi hazır.`,
-      action: { label: "Sonuçları gör", href: "/website-audit" },
+          : `${phaseLabel} analizi hazır — sonuçlara göz atabilirsin.`,
+      action: { label: "Sonuçlara bak", href: "/website-audit" },
     });
   },
   criticalIssue(message: string) {
     return toast({
       variant: "critical",
-      title: "Kritik sorun bulundu",
+      title: "Kritik bulgu",
       description: message,
       duration: 7000,
-      action: { label: "Denetimi aç", href: "/website-audit" },
+      action: { label: "Denetime git", href: "/website-audit" },
     });
   },
   seoUnlocked() {
     return toast({
       variant: "info",
-      title: "SEO aşaması açıldı",
-      description: "Web Tasarım denetimi tamamlandı — SEO optimizasyonu kullanılabilir.",
-      action: { label: "SEO'ya git", href: "/seo-audit" },
+      title: "SEO tarafı açıldı",
+      description: "Web tasarım turu bitti — SEO analizine geçebiliriz.",
+      action: { label: "SEO'ya geç", href: "/seo-audit" },
     });
   },
   briefScoreUpdated(score: number) {
     return toast({
       variant: "info",
       title: "Brief skoru güncellendi",
-      description: `Brief uygunluk skoru ${score}/100 olarak hesaplandı.`,
+      description: `Brief uyumu ${score}/100 — sapmaları birlikte toparlayalım.`,
       action: { label: "Karşılaştır", href: "/brief" },
     });
   },
   conversionIssue(message: string) {
     return toast({
       variant: "warning",
-      title: "Dönüşüm sorunu tespit edildi",
+      title: "Dönüşüm sinyali",
       description: message,
-      action: { label: "Reklam denetimi", href: "/ads-audit" },
+      action: { label: "Reklam turuna git", href: "/ads-audit" },
     });
   },
   scanStarted(projectName?: string) {
     return toast({
       variant: "info",
-      title: "Tarama başlatıldı",
+      title: "Tarama başladı",
       description: projectName
-        ? `${projectName} için canlı denetim kuyruğa alındı.`
-        : "Canlı denetim motoru çalışıyor.",
+        ? `${projectName} için canlı denetim çalışıyor.`
+        : "Canlı denetim motoru devrede.",
     });
   },
   auditStarted(
@@ -88,10 +88,10 @@ export const NexToast = {
   ) {
     return toast({
       variant: "info",
-      title: "Denetim başladı",
+      title: "Denetim devrede",
       description: projectName
-        ? `${projectName} · ${phaseLabel} kuyruğa alındı.`
-        : `${phaseLabel} analizi başlatıldı.`,
+        ? `${projectName} · ${phaseLabel} turu başladı.`
+        : `${phaseLabel} analizi başladı — ilerlemeyi buradan takip edebilirsin.`,
       action: href ? { label: "İlerlemeyi gör", href } : undefined,
     });
   },

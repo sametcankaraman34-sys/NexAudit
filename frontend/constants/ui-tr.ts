@@ -33,7 +33,7 @@ export const PROJECT_STATUS_LABELS = {
 } as const;
 
 export const AUDIT_PHASE_STATUS_LABELS = {
-  active: "Aktif",
-  completed: "Tamamlandı",
-  locked: "Kilitli",
+  active: "Devam ediyor",
+  completed: "Tamam",
+  locked: "Sırada",
 } as const;

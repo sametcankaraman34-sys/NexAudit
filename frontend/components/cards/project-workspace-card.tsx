@@ -122,7 +122,7 @@ export function ProjectWorkspaceCard({
                 {riskLabel[project.riskLevel]}
               </span>
               <span className="mx-2 text-[var(--border)]">·</span>
-              <span>%{completion} tamamlandı</span>
+              <span>%{completion} yol tamam</span>
             </p>
           </div>
 

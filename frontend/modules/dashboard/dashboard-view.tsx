@@ -20,7 +20,7 @@ export function DashboardView() {
       <PageHeader
         title="Dashboard"
         greeting={`Merhaba, ${DEMO_USER.name}! 👋`}
-        description="Sitelerini analiz et ve iyileştirme fırsatlarını yakala."
+        description="Sıradaki adımı birlikte bulalım — skor, sorunlar ve iyileştirme fırsatları burada."
         compact
       />
 
@@ -40,18 +40,19 @@ export function DashboardView() {
         <div className="flex min-w-0 flex-[1.65] flex-col gap-3">
           <section>
             <h2 className="mb-2.5 text-base font-semibold text-[var(--text-primary)]">
-              Denetim Aşamaları
+              Denetim yolculuğu
             </h2>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {dashboard.auditPhases.map((phase, index) => (
                 <AuditPhaseCard
                   key={phase.id}
                   phase={phase}
+                  allPhases={dashboard.auditPhases}
                   showConnector={index > 0}
                   compact
                 />
               ))}
-              <AuditFinalCard compact />
+              <AuditFinalCard compact allPhases={dashboard.auditPhases} />
             </div>
           </section>
 
