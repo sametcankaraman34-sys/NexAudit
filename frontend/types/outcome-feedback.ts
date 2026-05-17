@@ -28,13 +28,13 @@ export interface StageOutcomeEvent extends OutcomeEventBase {
 export type OutcomeEvent = ProjectOutcomeEvent | StageOutcomeEvent;
 
 export function isModalOutcome(event: OutcomeEvent): boolean {
-  return event.type === "project.completed" || event.type === "project.cancelled";
+  return (
+    event.type === "project.completed" ||
+    event.type === "project.cancelled" ||
+    event.type === "stage.completed"
+  );
 }
 
 export function isToastOutcome(event: OutcomeEvent): boolean {
-  return (
-    event.type === "project.deleted" ||
-    event.type === "stage.completed" ||
-    event.type === "stage.unlocked"
-  );
+  return event.type === "project.deleted" || event.type === "stage.unlocked";
 }

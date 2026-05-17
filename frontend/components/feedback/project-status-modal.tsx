@@ -2,7 +2,8 @@
 
 import { X } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   CompletionFeedback,
   NeutralOutcomeIcon,
@@ -17,6 +18,11 @@ export function ProjectStatusModal() {
   const modal = useOutcomeFeedbackStore((s) => s.modal);
   const exiting = useOutcomeFeedbackStore((s) => s.modalExiting);
   const dismissModal = useOutcomeFeedbackStore((s) => s.dismissModal);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!modal) return;
@@ -24,14 +30,32 @@ export function ProjectStatusModal() {
     return () => window.clearTimeout(timer);
   }, [modal, dismissModal]);
 
-  if (!modal) return null;
+  useEffect(() => {
+    if (!modal) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [modal]);
+
+  useEffect(() => {
+    if (!modal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") dismissModal();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [modal, dismissModal]);
+
+  if (!mounted || !modal) return null;
 
   const copy = getOutcomePresentation(modal);
   const isSuccess = copy.tone === "success";
 
-  return (
+  const content = (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[250] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="outcome-modal-title"
@@ -39,15 +63,16 @@ export function ProjectStatusModal() {
       <button
         type="button"
         className={cn(
-          "outcome-modal-backdrop absolute inset-0 bg-black/20 backdrop-blur-[2px]",
+          "outcome-modal-backdrop fixed inset-0 bg-black/20 backdrop-blur-[2px]",
           exiting ? "outcome-modal-backdrop-exit" : "outcome-modal-backdrop-enter",
         )}
         onClick={dismissModal}
         aria-label="Kapat"
       />
       <article
+        key={modal.id}
         className={cn(
-          "outcome-modal-card relative w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-6 py-7 text-center shadow-[0_24px_64px_rgba(15,23,42,0.12)]",
+          "outcome-modal-card relative z-[1] w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-6 py-7 text-center shadow-[0_24px_64px_rgba(15,23,42,0.12)]",
           exiting ? "outcome-modal-card-exit" : "outcome-modal-card-enter",
           isSuccess && "outcome-modal-card-success",
         )}
@@ -90,4 +115,6 @@ export function ProjectStatusModal() {
       </article>
     </div>
   );
+
+  return createPortal(content, document.body);
 }

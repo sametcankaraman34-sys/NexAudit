@@ -41,8 +41,8 @@ export function AuditWorkflowPanel({ projectId, phaseId, className }: AuditWorkf
   };
 
   const handleComplete = async (force = false) => {
-    const ok = await wf.completePhase(force);
-    if (ok) setDialogOpen(false);
+    setDialogOpen(false);
+    await wf.completePhase(force);
   };
 
   const tryComplete = () => {

@@ -153,6 +153,7 @@ export function CompletePhaseDialog({
                 disabled={confirming}
                 onClick={() => {
                   setConfirming(true);
+                  onCancel();
                   onConfirm();
                 }}
                 className={cn(
