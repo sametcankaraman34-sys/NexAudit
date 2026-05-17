@@ -1,9 +1,12 @@
+"use client";
+
 import { Calendar, CheckCircle2, FileBarChart, Search, TrendingUp } from "lucide-react";
 import { AnalysisSectionHeader } from "@/components/audit/analysis-section-header";
-import { reportHistoryOverview } from "@/data/mock-report-history";
+import { useProjectWorkspace } from "@/lib/project-context";
 import { cn } from "@/lib/utils";
 
-const metrics = [
+function buildMetrics(reportHistoryOverview: ReturnType<typeof useProjectWorkspace>["reportHistory"]["overview"]) {
+  return [
   {
     id: "total",
     label: "Toplam Denetim",
@@ -56,7 +59,8 @@ const metrics = [
     sparkline: [1, 1, 2, 2, 3, 3],
     isDate: true,
   },
-];
+  ];
+}
 
 const accentStyles = {
   primary: { bg: "var(--primary-soft)", color: "var(--primary)" },
@@ -65,6 +69,9 @@ const accentStyles = {
 };
 
 export function HistoryOverviewSection() {
+  const { reportHistory } = useProjectWorkspace();
+  const metrics = buildMetrics(reportHistory.overview);
+
   return (
     <section className="audit-section" style={{ animationDelay: "0ms" }}>
       <AnalysisSectionHeader

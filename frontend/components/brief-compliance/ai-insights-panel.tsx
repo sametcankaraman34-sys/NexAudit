@@ -1,8 +1,12 @@
+"use client";
+
 import { Sparkles } from "lucide-react";
 import { SeverityBadge } from "@/components/ui/severity-badge";
-import { briefAiInsights } from "@/data/mock-brief-compliance";
+import { useProjectWorkspace } from "@/lib/project-context";
 
 export function AiInsightsPanel() {
+  const { briefCompliance } = useProjectWorkspace();
+  const briefAiInsights = briefCompliance.aiInsights;
   return (
     <section
       className="audit-section rounded-2xl border border-[var(--primary)]/15 bg-gradient-to-b from-[var(--primary-soft)]/35 to-[var(--surface)] p-5 shadow-[var(--shadow-card)] lg:p-6"

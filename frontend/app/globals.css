@@ -640,6 +640,62 @@
   }
 }
 
+/* Proje switcher dropdown */
+@keyframes project-switcher-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes project-switcher-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.project-switcher-panel {
+  transform-origin: top left;
+  animation: project-switcher-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.project-switcher-backdrop {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+@media (min-width: 1024px) {
+  .project-switcher-backdrop {
+    background: transparent;
+  }
+}
+
+.project-switcher-item {
+  opacity: 0;
+  animation: project-switcher-item-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.project-switcher-list {
+  scrollbar-width: thin;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-switcher-panel,
+  .project-switcher-item {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Canlı toast — dropdown ile aynı hafif dil */
 @keyframes toast-enter {
   from {

@@ -67,7 +67,3 @@ export const DEMO_USER = {
   initials: "AD",
 };
 
-export const ACTIVE_PROJECT = {
-  id: "proj-1",
-  name: "Ajans Demo Projesi",
-};

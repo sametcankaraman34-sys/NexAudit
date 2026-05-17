@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getUnreadNotificationCount, mockNotifications } from "@/data/mock-notifications";
+import { getUnreadNotificationCount } from "@/data/mock-notifications";
 import { subscribeLiveNotifications } from "@/lib/live-notification-store";
+import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 import type { Notification, NotificationCategory } from "@/types";
 import type { IssueSeverity } from "@/types";
 import { cn } from "@/lib/utils";
@@ -43,8 +44,14 @@ const severitySoftBg: Record<IssueSeverity, string> = {
 export function NotificationBell() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<Notification[]>(mockNotifications);
+  const { activeProjectId } = useActiveProject();
+  const { notifications: projectNotifications } = useProjectWorkspace();
+  const [items, setItems] = useState<Notification[]>(projectNotifications);
   const unreadCount = useMemo(() => getUnreadNotificationCount(items), [items]);
+
+  useEffect(() => {
+    setItems(projectNotifications);
+  }, [activeProjectId, projectNotifications]);
 
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {

@@ -1,10 +1,10 @@
 "use client";
 
-import { Building2, Menu, Plus, Search } from "lucide-react";
+import { Menu, Plus, Search } from "lucide-react";
 import Link from "next/link";
+import { ProjectSwitcher } from "@/components/project-switcher/project-switcher";
 import { NotificationBell } from "@/components/notifications/notification-center";
 import { UI_SHORTCUT_SEARCH } from "@/constants/ui-tr";
-import { ACTIVE_PROJECT } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
@@ -27,13 +27,7 @@ export function Topbar({ onMenuClick, showMenuButton = false }: TopbarProps) {
           </button>
         )}
 
-        <button
-          type="button"
-          className="btn-transition hidden min-h-[44px] max-w-[min(100%,200px)] items-center gap-2 truncate rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-ui-secondary font-medium text-[var(--text-primary)] hover:bg-[var(--surface-soft)] sm:flex sm:max-w-[180px] md:px-4"
-        >
-          <Building2 className="h-4 w-4 shrink-0 text-[var(--primary)]" />
-          <span className="truncate">{ACTIVE_PROJECT.name}</span>
-        </button>
+        <ProjectSwitcher />
 
         <div className="relative mx-auto hidden min-w-0 max-w-xl flex-1 lg:block">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />

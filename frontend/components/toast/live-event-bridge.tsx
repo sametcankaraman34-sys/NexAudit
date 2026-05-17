@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { useActiveProject } from "@/lib/project-context";
 import { NexToast, toast } from "@/lib/nex-toast";
 
 function sessionKey(route: string, event: string) {
@@ -35,6 +36,7 @@ function scheduleEvent(
 /** Route-based live events — once per session per route */
 export function LiveEventBridge() {
   const pathname = usePathname();
+  const { activeProject } = useActiveProject();
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export function LiveEventBridge() {
 
     if (pathname === "/") {
       scheduleEvent(timers, "/", "scan-active", 2800, () =>
-        NexToast.scanStarted("Ajans Demo Projesi"),
+        NexToast.scanStarted(activeProject.name),
       );
     }
 
@@ -53,7 +55,7 @@ export function LiveEventBridge() {
         toast({
           variant: "success",
           title: "Denetim tamamlandı",
-          description: "Web Tasarım Denetimi bitti · skor 68/100",
+          description: `Web Tasarım Denetimi bitti · skor ${activeProject.overallScore}/100`,
           action: { label: "Sonuçları gör", href: "/website-audit" },
         }),
       );
@@ -67,7 +69,9 @@ export function LiveEventBridge() {
     }
 
     if (pathname === "/brief") {
-      scheduleEvent(timers, pathname, "brief-score", 1400, () => NexToast.briefScoreUpdated(82));
+      scheduleEvent(timers, pathname, "brief-score", 1400, () =>
+        NexToast.briefScoreUpdated(activeProject.briefScore ?? 0),
+      );
     }
 
     if (pathname === "/ads-audit") {
@@ -79,7 +83,7 @@ export function LiveEventBridge() {
     return () => {
       timers.forEach(clearTimeout);
     };
-  }, [pathname]);
+  }, [pathname, activeProject]);
 
   return null;
 }

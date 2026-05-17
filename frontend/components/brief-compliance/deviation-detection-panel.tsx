@@ -1,9 +1,13 @@
+"use client";
+
 import { Radar } from "lucide-react";
 import { SeverityBadge } from "@/components/ui/severity-badge";
-import { briefDeviations } from "@/data/mock-brief-compliance";
+import { useProjectWorkspace } from "@/lib/project-context";
 import type { IssueSeverity } from "@/types";
 
 export function DeviationDetectionPanel() {
+  const { briefCompliance } = useProjectWorkspace();
+  const briefDeviations = briefCompliance.deviations;
   return (
     <section
       className="audit-section rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)] lg:p-6"

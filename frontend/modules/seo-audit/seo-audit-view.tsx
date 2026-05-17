@@ -1,3 +1,5 @@
+"use client";
+
 import { Search } from "lucide-react";
 import { AnalysisCategoryCard } from "@/components/audit/analysis-category-card";
 import { AnalysisSectionHeader } from "@/components/audit/analysis-section-header";
@@ -9,19 +11,14 @@ import { LockedState } from "@/components/feedback/locked-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { ContentQualityPanel } from "@/components/seo-audit/content-quality-panel";
 import { KeywordAnalysisSection } from "@/components/seo-audit/keyword-analysis-section";
-import {
-  seoCategories,
-  seoContentFindings,
-  seoGuidance,
-  seoIssues,
-  seoKeywords,
-  seoPerformanceFactors,
-  seoSummary,
-} from "@/data/mock-seo-audit";
 import { isPhaseLocked, getLockedMessage } from "@/lib/audit-lock";
+import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function SeoAuditView() {
-  if (isPhaseLocked("seo")) {
+  const { activeProject } = useActiveProject();
+  const { seoAudit } = useProjectWorkspace();
+
+  if (isPhaseLocked("seo", activeProject.phases)) {
     return (
       <>
         <PageHeader
@@ -41,7 +38,7 @@ export function SeoAuditView() {
 
   return (
     <div className="audit-page space-y-6 lg:space-y-8">
-      <IntelligenceHero summary={seoSummary} icon={Search} />
+      <IntelligenceHero summary={seoAudit.summary} icon={Search} />
 
       <section className="audit-section" style={{ animationDelay: "90ms" }}>
         <AnalysisSectionHeader
@@ -49,7 +46,7 @@ export function SeoAuditView() {
           description="Sekiz denetim boyutunda teknik ve içerik metrikleri"
         />
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {seoCategories.map((category, index) => (
+          {seoAudit.categories.map((category, index) => (
             <li key={category.id} className="list-none">
               <AnalysisCategoryCard category={category} animationDelay={120 + index * 55} />
             </li>
@@ -60,25 +57,25 @@ export function SeoAuditView() {
       <IntelligenceIssueQueue
         title="SEO öncelik kuyruğu"
         subtitle="İndeksleme, meta ve schema bulguları — etkiye göre sıralı"
-        issues={seoIssues}
+        issues={seoAudit.issues}
         animationDelay={200}
       />
 
-      <KeywordAnalysisSection keywords={seoKeywords} animationDelay={280} />
+      <KeywordAnalysisSection keywords={seoAudit.keywords} animationDelay={280} />
 
-      <ContentQualityPanel findings={seoContentFindings} animationDelay={360} />
+      <ContentQualityPanel findings={seoAudit.contentFindings} animationDelay={360} />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <IntelligencePerformancePanel
           title="SEO skor etkisi"
           subtitle="Sıralama ve görünürlüğü düşüren faktörler"
-          factors={seoPerformanceFactors}
+          factors={seoAudit.performance}
           animationDelay={440}
         />
         <IntelligenceGuidancePanel
           title="SEO düzeltme rehberi"
           subtitle="Rank Math ve Yoast içinde adım adım düzeltme yolları"
-          items={seoGuidance}
+          items={seoAudit.guidance}
           animationDelay={480}
         />
       </div>

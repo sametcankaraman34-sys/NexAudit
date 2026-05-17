@@ -1,7 +1,9 @@
+"use client";
+
 import { BarChart3 } from "lucide-react";
 import { SeverityBadge } from "@/components/ui/severity-badge";
-import { complianceAnalytics } from "@/data/mock-brief-compliance";
 import type { ComplianceAnalyticItem } from "@/data/mock-brief-compliance";
+import { useProjectWorkspace } from "@/lib/project-context";
 import { ComplianceBar } from "./mini-score-ring";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +22,8 @@ const statusLabels = {
 };
 
 export function ComplianceAnalyticsPanel() {
+  const { briefCompliance } = useProjectWorkspace();
+  const complianceAnalytics = briefCompliance.analytics;
   return (
     <section
       className="audit-section rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)] lg:p-6"

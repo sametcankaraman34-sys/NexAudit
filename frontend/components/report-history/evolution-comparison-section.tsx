@@ -1,6 +1,8 @@
+"use client";
+
 import { GitCompareArrows } from "lucide-react";
 import { AnalysisSectionHeader } from "@/components/audit/analysis-section-header";
-import { evolutionMetrics } from "@/data/mock-report-history";
+import { useProjectWorkspace } from "@/lib/project-context";
 import { cn } from "@/lib/utils";
 
 function barColor(changePercent: number) {
@@ -9,6 +11,9 @@ function barColor(changePercent: number) {
 }
 
 export function EvolutionComparisonSection() {
+  const { reportHistory } = useProjectWorkspace();
+  const evolutionMetrics = reportHistory.evolution;
+
   return (
     <section
       className="audit-section rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)] lg:p-6"
@@ -26,69 +31,58 @@ export function EvolutionComparisonSection() {
 
       <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {evolutionMetrics.map((metric, index) => {
-          const color = barColor(metric.changePercent);
-          const improved = metric.changePercent < 0 ? "azaldı" : "arttı";
+          const maxBar = Math.max(...metric.barValues, 1);
           return (
-            <li key={metric.id} className="list-none">
-              <article
-                className="audit-row card-interactive rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]/40 p-4"
-                style={{ animationDelay: `${240 + index * 45}ms` }}
-              >
-                <div className="mb-3 flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">{metric.label}</h3>
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-md px-2 py-0.5 text-xs font-bold tabular-nums",
-                      metric.changePercent < 0
-                        ? "bg-[var(--success-soft)] text-[var(--success)]"
-                        : "bg-[var(--primary-soft)] text-[var(--primary)]",
-                    )}
-                  >
-                    {metric.changePercent > 0 ? "+" : ""}
-                    {metric.changePercent}%
-                  </span>
-                </div>
+            <li
+              key={metric.id}
+              className="audit-section rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]/50 p-4"
+              style={{ animationDelay: `${240 + index * 50}ms` }}
+            >
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <p className="text-sm font-medium text-[var(--text-primary)]">{metric.label}</p>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-0.5 text-[12px] font-medium",
+                    metric.changePercent <= 0
+                      ? "bg-[var(--success-soft)] text-[var(--success)]"
+                      : "bg-[var(--primary-soft)] text-[var(--primary)]",
+                  )}
+                >
+                  {metric.changePercent > 0 ? "+" : ""}
+                  {metric.changePercent}%
+                </span>
+              </div>
 
-                <div className="mb-2 flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)]">
-                    Önce: <strong className="text-[var(--text-primary)]">{metric.before}</strong>{" "}
+              <div className="mb-3 flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-[12px] text-[var(--text-secondary)]">Önce</p>
+                  <p className="text-lg font-semibold tabular-nums text-[var(--text-secondary)]">
+                    {metric.before}
                     {metric.unit}
-                  </span>
-                  <span className="text-[var(--text-secondary)]">
-                    Sonra: <strong style={{ color }}>{metric.after}</strong> {metric.unit}
-                  </span>
+                  </p>
                 </div>
+                <div className="text-right">
+                  <p className="text-[12px] text-[var(--text-secondary)]">Sonra</p>
+                  <p className="text-lg font-semibold tabular-nums text-[var(--text-primary)]">
+                    {metric.after}
+                    {metric.unit}
+                  </p>
+                </div>
+              </div>
 
-                <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-[var(--surface-soft)]">
-                  <div
-                    className="audit-bar-grow h-full rounded-full"
+              <div className="flex h-8 items-end gap-1">
+                {metric.barValues.map((value, barIndex) => (
+                  <span
+                    key={barIndex}
+                    className="flex-1 rounded-t-sm transition-[height] duration-500"
                     style={{
-                      width: `${Math.min(100, (metric.after / Math.max(metric.before, metric.after)) * 100)}%`,
-                      backgroundColor: color,
-                      animationDelay: `${260 + index * 40}ms`,
+                      height: `${Math.max(12, (value / maxBar) * 100)}%`,
+                      backgroundColor: barColor(metric.changePercent),
+                      opacity: 0.35 + barIndex * 0.12,
                     }}
                   />
-                </div>
-
-                <div className="flex h-8 items-end gap-1">
-                  {metric.barValues.map((v, i) => (
-                    <span
-                      key={i}
-                      className="audit-vbar-grow flex-1 rounded-sm"
-                      style={{
-                        height: `${Math.max(18, (v / Math.max(...metric.barValues)) * 100)}%`,
-                        backgroundColor: color,
-                        opacity: 0.35 + (i / metric.barValues.length) * 0.55,
-                        animationDelay: `${280 + index * 35 + i * 25}ms`,
-                      }}
-                    />
-                  ))}
-                </div>
-
-                <p className="mt-2 text-[13px] text-[var(--text-secondary)]">
-                  Dönem içinde {improved}
-                </p>
-              </article>
+                ))}
+              </div>
             </li>
           );
         })}

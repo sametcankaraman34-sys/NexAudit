@@ -1,7 +1,9 @@
+"use client";
+
 import { CheckCircle2, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { mockBriefMet, mockBriefScore } from "@/data/mock-brief";
+import { useProjectWorkspace } from "@/lib/project-context";
 import { cn } from "@/lib/utils";
 
 interface BriefScoreCardProps {
@@ -9,7 +11,9 @@ interface BriefScoreCardProps {
 }
 
 export function BriefScoreCard({ compact }: BriefScoreCardProps) {
-  const items = mockBriefMet.slice(0, compact ? 2 : 3);
+  const { brief } = useProjectWorkspace();
+  const items = brief.met.slice(0, compact ? 2 : 3);
+  const badgeVariant = brief.score >= 70 ? "good" : brief.score >= 50 ? "in_progress" : "detected";
 
   return (
     <Link
@@ -47,7 +51,7 @@ export function BriefScoreCard({ compact }: BriefScoreCardProps) {
                 compact ? "text-[1.75rem] leading-none" : "text-3xl",
               )}
             >
-              {mockBriefScore.score}
+              {brief.score || "—"}
             </span>
             <span
               className={cn(
@@ -55,10 +59,12 @@ export function BriefScoreCard({ compact }: BriefScoreCardProps) {
                 compact ? "mb-0.5 text-sm" : "mb-1 text-lg",
               )}
             >
-              / {mockBriefScore.maxScore}
+              / {brief.maxScore}
             </span>
           </div>
-          <StatusBadge variant="good" label={mockBriefScore.label} className="mt-1.5" />
+          {brief.score > 0 && (
+            <StatusBadge variant={badgeVariant} label={brief.label} className="mt-1.5" />
+          )}
         </div>
 
         {compact && (

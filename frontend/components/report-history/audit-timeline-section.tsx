@@ -1,8 +1,10 @@
+"use client";
+
 import { History, Megaphone, Monitor, Search } from "lucide-react";
 import { AnalysisSectionHeader } from "@/components/audit/analysis-section-header";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { auditTimeline } from "@/data/mock-report-history";
 import type { AuditTimelineEntry } from "@/data/mock-report-history";
+import { useProjectWorkspace } from "@/lib/project-context";
 import { cn } from "@/lib/utils";
 
 const phaseIcons = {
@@ -18,6 +20,8 @@ function scoreColor(score: number) {
 }
 
 export function AuditTimelineSection() {
+  const { reportHistory } = useProjectWorkspace();
+  const auditTimeline = reportHistory.timeline;
   return (
     <section className="audit-section" style={{ animationDelay: "120ms" }}>
       <div className="mb-4 flex items-start gap-3">

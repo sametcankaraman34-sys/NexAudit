@@ -1,13 +1,21 @@
-import { DEMO_AUDIT_PHASE_STATUS } from "@/constants/audit";
-import type { AuditPhaseId } from "@/types";
+import type { AuditPhaseId, AuditPhaseStatus, ProjectPhaseState } from "@/types";
 
-export function getPhaseStatus(phaseId: AuditPhaseId) {
-  return DEMO_AUDIT_PHASE_STATUS[phaseId] ?? "locked";
+export function getPhaseStatus(
+  phaseId: AuditPhaseId,
+  phases: ProjectPhaseState[],
+): AuditPhaseStatus {
+  const phase = phases.find((p) => p.id === phaseId);
+  if (!phase) return "locked";
+  if (phase.status === "completed") return "completed";
+  if (phase.status === "in_progress") return "active";
+  return "locked";
 }
 
-export function isPhaseLocked(phaseId: AuditPhaseId): boolean {
-  const status = getPhaseStatus(phaseId);
-  return status === "locked";
+export function isPhaseLocked(
+  phaseId: AuditPhaseId,
+  phases: ProjectPhaseState[],
+): boolean {
+  return getPhaseStatus(phaseId, phases) === "locked";
 }
 
 export function getLockedMessage(phaseId: AuditPhaseId): string {

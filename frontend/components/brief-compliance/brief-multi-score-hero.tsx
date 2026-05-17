@@ -1,13 +1,14 @@
+"use client";
+
 import { ArrowUpRight, FileCheck, TrendingUp } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
-import {
-  briefComplianceMeta,
-  briefComplianceMetrics,
-} from "@/data/mock-brief-compliance";
+import { useProjectWorkspace } from "@/lib/project-context";
 import { cn } from "@/lib/utils";
 import { ComplianceBar, MiniScoreRing } from "./mini-score-ring";
 
 export function BriefMultiScoreHero() {
+  const { briefCompliance } = useProjectWorkspace();
+  const { meta, metrics: briefComplianceMetrics } = briefCompliance;
   const overall = briefComplianceMetrics.find((m) => m.id === "overall")!;
   const subMetrics = briefComplianceMetrics.filter((m) => m.id !== "overall");
 
@@ -30,26 +31,26 @@ export function BriefMultiScoreHero() {
               </h1>
               <p className="mt-1 text-sm text-[var(--text-secondary)]">
                 <span className="font-medium text-[var(--text-primary)]/90">
-                  {briefComplianceMeta.projectName}
+                  {meta.projectName}
                 </span>
                 <span className="mx-1.5 text-[var(--border)]">·</span>
-                {briefComplianceMeta.domain}
+                {meta.domain}
                 <span className="mx-1.5 text-[var(--border)]">·</span>
-                {briefComplianceMeta.lastAnalysisAt}
+                {meta.lastAnalysisAt}
               </p>
             </div>
 
             <p className="rounded-xl border border-[var(--primary)]/15 bg-[var(--primary-soft)]/25 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)]">
               <span className="font-medium text-[var(--primary)]">Hizalama: </span>
-              {briefComplianceMeta.alignmentLabel}
+              {meta.alignmentLabel}
             </p>
 
             <div className="flex flex-wrap gap-2">
-              <Chip label="Brief" value={briefComplianceMeta.briefVersion} accent="primary" />
-              <Chip label="Önceki skor" value={String(briefComplianceMeta.previousScore)} />
+              <Chip label="Brief" value={meta.briefVersion} accent="primary" />
+              <Chip label="Önceki skor" value={String(meta.previousScore)} />
               <Chip
                 label="Trend"
-                value={`+${briefComplianceMeta.trend}`}
+                value={`+${meta.trend}`}
                 accent="success"
                 icon={<TrendingUp className="h-3 w-3" strokeWidth={2} />}
               />

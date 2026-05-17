@@ -1,7 +1,12 @@
+"use client";
+
 import { Sparkles } from "lucide-react";
-import { historicalInsights } from "@/data/mock-report-history";
+import { useProjectWorkspace } from "@/lib/project-context";
 
 export function HistoricalInsightsPanel() {
+  const { reportHistory } = useProjectWorkspace();
+  const historicalInsights = reportHistory.insights;
+
   return (
     <section
       className="audit-section rounded-2xl border border-[var(--primary)]/15 bg-gradient-to-b from-[var(--primary-soft)]/30 to-[var(--surface)] p-5 shadow-[var(--shadow-card)] lg:p-6"
@@ -25,13 +30,15 @@ export function HistoricalInsightsPanel() {
         {historicalInsights.map((item, index) => (
           <li
             key={item.id}
-            className="audit-row card-interactive rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
-            style={{ animationDelay: `${320 + index * 50}ms` }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface)]/80 px-4 py-3"
+            style={{ animationDelay: `${320 + index * 45}ms` }}
           >
-            <span className="mb-2 inline-block rounded-md border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-0.5 text-[13px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <p className="text-[12px] font-medium uppercase tracking-wide text-[var(--primary)]">
               {item.category}
-            </span>
-            <p className="text-sm leading-relaxed text-[var(--text-primary)]">{item.insight}</p>
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-[var(--text-primary)]">
+              {item.insight}
+            </p>
           </li>
         ))}
       </ul>

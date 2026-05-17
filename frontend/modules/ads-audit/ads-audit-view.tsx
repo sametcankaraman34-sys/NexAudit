@@ -1,3 +1,5 @@
+"use client";
+
 import { Megaphone } from "lucide-react";
 import { IntelligenceGuidancePanel } from "@/components/audit/intelligence-guidance-panel";
 import { IntelligenceHero } from "@/components/audit/intelligence-hero";
@@ -8,19 +10,14 @@ import { LandingPageAnalysis } from "@/components/ads-audit/landing-page-analysi
 import { TrackingInfrastructureGrid } from "@/components/ads-audit/tracking-infrastructure-grid";
 import { LockedState } from "@/components/feedback/locked-state";
 import { PageHeader } from "@/components/layout/page-header";
-import {
-  adsGuidance,
-  adsIssues,
-  adsMetricFindings,
-  adsPerformanceFactors,
-  adsSummary,
-  landingInsights,
-  trackingCards,
-} from "@/data/mock-ads-audit";
 import { isPhaseLocked, getLockedMessage } from "@/lib/audit-lock";
+import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function AdsAuditView() {
-  if (isPhaseLocked("ads")) {
+  const { activeProject } = useActiveProject();
+  const { adsAudit } = useProjectWorkspace();
+
+  if (isPhaseLocked("ads", activeProject.phases)) {
     return (
       <>
         <PageHeader
@@ -40,33 +37,33 @@ export function AdsAuditView() {
 
   return (
     <div className="audit-page space-y-6 lg:space-y-8">
-      <IntelligenceHero summary={adsSummary} icon={Megaphone} />
+      <IntelligenceHero summary={adsAudit.summary} icon={Megaphone} />
 
-      <TrackingInfrastructureGrid cards={trackingCards} animationDelay={90} />
+      <TrackingInfrastructureGrid cards={adsAudit.trackingCards} animationDelay={90} />
 
       <IntelligenceIssueQueue
         title="Dönüşüm öncelik kuyruğu"
         subtitle="Tracking ve landing bulguları — ROAS etkisine göre sıralı"
-        issues={adsIssues}
+        issues={adsAudit.issues}
         animationDelay={180}
       />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <LandingPageAnalysis insights={landingInsights} animationDelay={260} />
-        <AnalyticsHealthPanel findings={adsMetricFindings} animationDelay={300} />
+        <LandingPageAnalysis insights={adsAudit.landingInsights} animationDelay={260} />
+        <AnalyticsHealthPanel findings={adsAudit.metricFindings} animationDelay={300} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <IntelligencePerformancePanel
           title="Dönüşüm skor etkisi"
           subtitle="Ölçüm ve landing hızından kaynaklanan kayıplar"
-          factors={adsPerformanceFactors}
+          factors={adsAudit.performance}
           animationDelay={380}
         />
         <IntelligenceGuidancePanel
           title="Reklam düzeltme rehberi"
           subtitle="GTM, Google Ads ve consent yapılandırma adımları"
-          items={adsGuidance}
+          items={adsAudit.guidance}
           animationDelay={420}
         />
       </div>

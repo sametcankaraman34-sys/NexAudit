@@ -1,9 +1,13 @@
+"use client";
+
 import { GitCompare } from "lucide-react";
 import { AnalysisSectionHeader } from "@/components/audit/analysis-section-header";
-import { visualComparisons } from "@/data/mock-brief-compliance";
+import { useProjectWorkspace } from "@/lib/project-context";
 import { ComplianceBar, scoreColor } from "./mini-score-ring";
 
 export function VisualComparisonGrid() {
+  const { briefCompliance } = useProjectWorkspace();
+  const visualComparisons = briefCompliance.visualComparisons;
   return (
     <section className="audit-section" style={{ animationDelay: "100ms" }}>
       <div className="mb-4 flex items-start gap-3">
