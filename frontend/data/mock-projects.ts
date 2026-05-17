@@ -11,8 +11,8 @@ export const mockProjects: Project[] = [
     updatedAt: "2026-05-15",
     phases: [
       { id: "website", status: "completed", progress: 100 },
-      { id: "seo", status: "locked", progress: 0 },
-      { id: "ads", status: "locked", progress: 0 },
+      { id: "seo", status: "in_progress", progress: 42 },
+      { id: "ads", status: "not_started", progress: 0 },
     ],
     criticalIssues: 12,
     briefScore: 82,

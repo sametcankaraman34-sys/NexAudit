@@ -65,15 +65,15 @@ export const mockAuditPhases: AuditPhase[] = [
     id: "seo",
     title: "SEO Optimizasyonu",
     description: "Teknik SEO, içerik ve anahtar kelime analizi",
-    status: "locked",
-    progress: 0,
+    status: "active",
+    progress: 42,
   },
   {
     id: "ads",
     title: "Reklam & Dönüşüm",
     description: "Dönüşüm hunisi ve reklam performansı",
-    status: "locked",
-    progress: 0,
+    status: "active",
+    progress: 28,
   },
 ];
 

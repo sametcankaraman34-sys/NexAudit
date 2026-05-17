@@ -1,4 +1,11 @@
 import type { IssueSeverity, IssueStatus } from "@/types";
+import type {
+  AuditIntelligenceSummary,
+  GuidanceItem,
+  IntelligenceIssue,
+  MetricFinding,
+  PerformanceFactor as IntelligencePerformanceFactor,
+} from "@/types/audit-intelligence";
 
 export interface WebsiteAuditIssue {
   id: string;
@@ -353,3 +360,64 @@ export const fixGuidanceItems: FixGuidanceItem[] = [
     priority: "medium",
   },
 ];
+
+export const websiteIntelligenceSummary: AuditIntelligenceSummary = {
+  title: "Web Tasarım Denetimi",
+  badgeLabel: "Canlı denetim merkezi",
+  domain: websiteAuditSummary.domain,
+  lastScanAt: websiteAuditSummary.lastScanAt,
+  overallScore: websiteAuditSummary.overallScore,
+  previousScore: websiteAuditSummary.previousScore,
+  trend: websiteAuditSummary.trend,
+  riskLevel: websiteAuditSummary.riskLevel,
+  statusLabel: "Tarama tamamlandı",
+  chips: [
+    { label: "Taranan sayfa", value: String(websiteAuditSummary.pagesScanned) },
+    {
+      label: "Analiz edilen öğe",
+      value: websiteAuditSummary.elementsAnalyzed.toLocaleString("tr-TR"),
+    },
+    { label: "Skor değişimi", value: `+${websiteAuditSummary.trend}`, accent: "success" },
+  ],
+  sideStats: [],
+};
+
+export const websiteIntelligenceIssues: IntelligenceIssue[] = websiteAuditIssues.map((issue) => ({
+  id: issue.id,
+  title: issue.title,
+  location: issue.location,
+  severity: issue.severity,
+  status: issue.status,
+  impact: issue.impact,
+  optimizationPotential: issue.optimizationPotential,
+  affectedElement: issue.affectedElement,
+  fixHint: issue.fixGuidance,
+}));
+
+export const websiteMetricFindings: MetricFinding[] = visualFindings.map((f) => ({
+  id: f.id,
+  title: f.title,
+  description: f.description,
+  severity: f.severity,
+  metric: f.metric,
+  metricLabel: f.metricLabel,
+}));
+
+export const websiteGuidanceItems: GuidanceItem[] = fixGuidanceItems.map((item) => ({
+  id: item.id,
+  issueTitle: item.issueTitle,
+  guidance: item.guidance,
+  editorHint: item.editorHint,
+  priority: item.priority,
+}));
+
+export const websitePerformanceFactors: IntelligencePerformanceFactor[] = performanceFactors.map(
+  (f) => ({
+    id: f.id,
+    label: f.label,
+    impact: f.impact,
+    estimatedMs: f.estimatedMs,
+    scorePenalty: f.scorePenalty,
+    barPercent: f.barPercent,
+  }),
+);

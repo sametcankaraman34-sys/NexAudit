@@ -1,29 +1,30 @@
-import { AnalysisCategoryCard } from "@/components/website-audit/analysis-category-card";
-import { AuditHero } from "@/components/website-audit/audit-hero";
-import { AuditIssueQueue } from "@/components/website-audit/audit-issue-queue";
-import { FixGuidancePanel } from "@/components/website-audit/fix-guidance-panel";
-import { PerformanceImpactPanel } from "@/components/website-audit/performance-impact-panel";
-import { VisualAnalysisGrid } from "@/components/website-audit/visual-analysis-grid";
+import { Activity } from "lucide-react";
+import { AnalysisCategoryCard } from "@/components/audit/analysis-category-card";
+import { AnalysisSectionHeader } from "@/components/audit/analysis-section-header";
+import { IntelligenceGuidancePanel } from "@/components/audit/intelligence-guidance-panel";
+import { IntelligenceHero } from "@/components/audit/intelligence-hero";
+import { IntelligenceIssueQueue } from "@/components/audit/intelligence-issue-queue";
+import { IntelligenceMetricGrid } from "@/components/audit/intelligence-metric-grid";
+import { IntelligencePerformancePanel } from "@/components/audit/intelligence-performance-panel";
 import {
   analysisCategories,
-  fixGuidanceItems,
-  performanceFactors,
-  visualFindings,
-  websiteAuditIssues,
+  websiteGuidanceItems,
+  websiteIntelligenceIssues,
+  websiteIntelligenceSummary,
+  websiteMetricFindings,
+  websitePerformanceFactors,
 } from "@/data/mock-website-audit";
 
 export function WebsiteAuditView() {
   return (
     <div className="audit-page space-y-6 lg:space-y-8">
-      <AuditHero />
+      <IntelligenceHero summary={websiteIntelligenceSummary} icon={Activity} />
 
       <section className="audit-section" style={{ animationDelay: "90ms" }}>
-        <div className="mb-4">
-          <h2 className="text-base font-semibold text-[var(--text-primary)]">Analiz özeti</h2>
-          <p className="mt-0.5 text-sm text-[var(--text-secondary)]">
-            Altı denetim boyutunda derinlemesine metrikler ve optimizasyon potansiyeli
-          </p>
-        </div>
+        <AnalysisSectionHeader
+          title="Analiz özeti"
+          description="Altı denetim boyutunda derinlemesine metrikler ve optimizasyon potansiyeli"
+        />
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {analysisCategories.map((category, index) => (
             <li key={category.id} className="list-none">
@@ -33,13 +34,18 @@ export function WebsiteAuditView() {
         </ul>
       </section>
 
-      <AuditIssueQueue issues={websiteAuditIssues} animationDelay={200} />
+      <IntelligenceIssueQueue issues={websiteIntelligenceIssues} animationDelay={200} />
 
-      <VisualAnalysisGrid findings={visualFindings} animationDelay={280} />
+      <IntelligenceMetricGrid
+        title="Görsel analiz"
+        subtitle="Derinlemesine yapısal ve görsel inceleme bulguları"
+        findings={websiteMetricFindings}
+        animationDelay={280}
+      />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <PerformanceImpactPanel factors={performanceFactors} animationDelay={360} />
-        <FixGuidancePanel items={fixGuidanceItems} animationDelay={400} />
+        <IntelligencePerformancePanel factors={websitePerformanceFactors} animationDelay={360} />
+        <IntelligenceGuidancePanel items={websiteGuidanceItems} animationDelay={400} />
       </div>
     </div>
   );
