@@ -82,7 +82,7 @@ export function IntelligenceHero({ summary, icon: Icon }: IntelligenceHeroProps)
                 icon={<ShieldAlert className="h-3 w-3 shrink-0" style={{ color: risk.color }} />}
                 footer={
                   summary.trend !== 0 ? (
-                    <span className="mt-0.5 flex items-center gap-0.5 text-[10px] font-medium text-[var(--success)]">
+                    <span className="mt-0.5 flex items-center gap-0.5 text-[13px] font-medium text-[var(--success)]">
                       <ArrowUpRight className="h-3 w-3" />+{summary.trend} puan
                     </span>
                   ) : undefined
@@ -147,7 +147,7 @@ function ScoreRing({
         <span className="text-2xl font-bold tabular-nums leading-none text-[var(--text-primary)]">
           {score}
         </span>
-        <span className="mt-0.5 text-[10px] font-medium text-[var(--text-secondary)]">/ 100</span>
+        <span className="mt-0.5 text-[13px] font-medium text-[var(--text-secondary)]">/ 100</span>
       </div>
     </div>
   );
@@ -170,7 +170,7 @@ function MiniStat({
 }) {
   return (
     <div className="min-w-[108px] rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/80 px-2.5 py-2">
-      <p className="flex items-center gap-1 text-[10px] font-medium text-[var(--text-secondary)]">
+      <p className="flex items-center gap-1 text-[13px] font-medium text-[var(--text-secondary)]">
         {icon}
         {label}
       </p>
@@ -182,7 +182,7 @@ function MiniStat({
       >
         {value}
       </p>
-      {sublabel && <p className="text-[10px] text-[var(--text-secondary)]">{sublabel}</p>}
+      {sublabel && <p className="text-[13px] text-[var(--text-secondary)]">{sublabel}</p>}
       {footer}
     </div>
   );

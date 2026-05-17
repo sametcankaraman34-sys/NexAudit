@@ -22,7 +22,7 @@ export function MiniScoreRing({ score, size = "md", className }: MiniScoreRingPr
   const color = scoreColor(score);
   const scoreText =
     size === "lg" ? "text-2xl" : size === "md" ? "text-base" : "text-xs";
-  const subText = size === "lg" ? "text-[10px]" : "text-[8px]";
+  const subText = size === "lg" ? "text-[13px]" : "text-[8px]";
 
   return (
     <div

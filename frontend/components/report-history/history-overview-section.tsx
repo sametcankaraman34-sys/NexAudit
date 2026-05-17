@@ -110,7 +110,7 @@ export function HistoryOverviewSection() {
                   </span>
                 </div>
 
-                <p className="mt-3 h-4 shrink-0 truncate text-[11px] font-medium leading-4 text-[var(--text-secondary)]">
+                <p className="mt-3 h-4 shrink-0 truncate text-sm font-medium leading-4 text-[var(--text-secondary)]">
                   {metric.label}
                 </p>
 
@@ -130,7 +130,7 @@ export function HistoryOverviewSection() {
                   </p>
                 </div>
 
-                <p className="mt-1 h-3.5 shrink-0 truncate text-[10px] leading-[14px] text-[var(--text-secondary)]">
+                <p className="mt-1 h-3.5 shrink-0 truncate text-[13px] leading-[14px] text-[var(--text-secondary)]">
                   {"trend" in metric && metric.trend != null && metric.trendLabel
                     ? `+${metric.trend} ${metric.trendLabel}`
                     : "trendLabel" in metric && metric.trendLabel

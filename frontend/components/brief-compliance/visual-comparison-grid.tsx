@@ -55,7 +55,7 @@ export function VisualComparisonGrid() {
               </div>
 
               <div className="mt-3 flex items-center gap-2">
-                <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+                <span className="text-[13px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
                   Sapma göstergesi
                 </span>
                 <DeviationMeter percent={100 - item.matchPercent} />
@@ -103,7 +103,7 @@ function DeviationMeter({ percent }: { percent: number }) {
           style={{ width: `${Math.min(100, percent)}%`, backgroundColor: intensity }}
         />
       </div>
-      <span className="text-[10px] font-semibold tabular-nums text-[var(--text-secondary)]">
+      <span className="text-[13px] font-semibold tabular-nums text-[var(--text-secondary)]">
         {percent}%
       </span>
     </div>

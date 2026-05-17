@@ -75,13 +75,13 @@ export function BriefMultiScoreHero() {
               <div className="flex items-center gap-2.5">
                 <MiniScoreRing score={metric.score} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[11px] font-medium text-[var(--text-secondary)]">
+                  <p className="truncate text-sm font-medium text-[var(--text-secondary)]">
                     {metric.label}
                   </p>
                   {metric.trend !== undefined && (
                     <p
                       className={cn(
-                        "mt-0.5 text-[10px] font-semibold tabular-nums",
+                        "mt-0.5 text-[13px] font-semibold tabular-nums",
                         metric.trend >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]",
                       )}
                     >

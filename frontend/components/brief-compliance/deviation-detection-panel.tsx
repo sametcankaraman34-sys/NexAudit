@@ -34,7 +34,7 @@ export function DeviationDetectionPanel() {
               <div className="min-w-0 flex-1">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <SeverityBadge severity={dev.severity} size="sm" />
-                  <span className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-secondary)]">
+                  <span className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[13px] font-medium text-[var(--text-secondary)]">
                     {dev.category}
                   </span>
                 </div>

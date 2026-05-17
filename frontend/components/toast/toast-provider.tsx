@@ -135,7 +135,7 @@ function ToastViewport({
 
   return (
     <div
-      className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(320px,calc(100vw-1.5rem))] flex-col-reverse gap-2"
+      className="pointer-events-none fixed bottom-4 left-3 right-3 z-[100] flex flex-col-reverse gap-2 sm:left-auto sm:right-4 sm:w-[min(360px,calc(100vw-2rem))]"
       aria-live="polite"
       aria-label="Canlı bildirimler"
     >
@@ -213,7 +213,7 @@ function ToastCard({
           {toast.title}
         </p>
         {toast.description && (
-          <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[var(--text-secondary)]">
+          <p className="mt-0.5 line-clamp-2 text-sm leading-snug text-[var(--text-secondary)]">
             {toast.description}
           </p>
         )}

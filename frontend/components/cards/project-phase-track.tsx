@@ -89,7 +89,7 @@ export function ProjectPhaseTrack({ phases, className }: ProjectPhaseTrackProps)
                 </span>
               </span>
               <span className="flex items-center justify-between gap-1">
-                <span className="text-[11px] opacity-90">{config.label}</span>
+                <span className="text-sm opacity-90">{config.label}</span>
                 {config.icon === "check" && (
                   <Check className="h-3 w-3 shrink-0" strokeWidth={2.5} />
                 )}
@@ -97,7 +97,7 @@ export function ProjectPhaseTrack({ phases, className }: ProjectPhaseTrackProps)
                   <Lock className="h-3 w-3 shrink-0 opacity-70" strokeWidth={1.75} />
                 )}
                 {phase.status === "in_progress" && (
-                  <span className="text-[11px] font-semibold tabular-nums">
+                  <span className="text-sm font-semibold tabular-nums">
                     %{phase.progress}
                   </span>
                 )}

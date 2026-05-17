@@ -28,7 +28,7 @@ export function HistoricalInsightsPanel() {
             className="audit-row card-interactive rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
             style={{ animationDelay: `${320 + index * 50}ms` }}
           >
-            <span className="mb-2 inline-block rounded-md border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <span className="mb-2 inline-block rounded-md border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-0.5 text-[13px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
               {item.category}
             </span>
             <p className="text-sm leading-relaxed text-[var(--text-primary)]">{item.insight}</p>

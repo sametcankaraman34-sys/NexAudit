@@ -86,7 +86,7 @@ export function AuditHero() {
               <span className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
                 {overallScore}
               </span>
-              <span className="text-[11px] font-medium text-[var(--text-secondary)]">/ 100</span>
+              <span className="text-sm font-medium text-[var(--text-secondary)]">/ 100</span>
             </div>
           </div>
           <div className="hidden flex-col gap-3 sm:flex">

@@ -374,7 +374,7 @@ function IssueBreakdownStack({
           <div key={label} className="text-center">
             <p
               className={cn(
-                "text-[11px] font-semibold tabular-nums",
+                "text-sm font-semibold tabular-nums",
                 i === 0 && "text-[var(--danger)]",
                 i === 1 && "text-[#ea580c]",
                 i === 2 && "text-[var(--warning)]",

@@ -22,7 +22,7 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (data.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-[var(--text-secondary)]">{emptyMessage}</p>
+      <p className="py-8 text-center text-ui-secondary text-[var(--text-secondary)]">{emptyMessage}</p>
     );
   }
 
@@ -30,7 +30,7 @@ export function DataTable<T>({
     <div className="overflow-x-auto">
       <table className="w-full min-w-[560px]">
         <thead>
-          <tr className="border-b border-[var(--border)] text-left text-xs text-[var(--text-secondary)]">
+          <tr className="border-b border-[var(--border)] text-left text-ui-secondary text-[var(--text-secondary)]">
             {columns.map((col) => (
               <th key={col.key} className={cn("pb-3 pr-4 font-medium", col.className)}>
                 {col.header}
@@ -45,7 +45,7 @@ export function DataTable<T>({
               className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-soft)]/50"
             >
               {columns.map((col) => (
-                <td key={col.key} className={cn("py-3.5 pr-4", col.className)}>
+                <td key={col.key} className={cn("py-3.5 pr-4 text-ui-secondary", col.className)}>
                   {col.render(row)}
                 </td>
               ))}

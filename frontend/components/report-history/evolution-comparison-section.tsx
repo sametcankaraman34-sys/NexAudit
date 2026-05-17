@@ -85,7 +85,7 @@ export function EvolutionComparisonSection() {
                   ))}
                 </div>
 
-                <p className="mt-2 text-[10px] text-[var(--text-secondary)]">
+                <p className="mt-2 text-[13px] text-[var(--text-secondary)]">
                   Dönem içinde {improved}
                 </p>
               </article>

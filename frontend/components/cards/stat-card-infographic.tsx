@@ -219,7 +219,7 @@ function StackedBarChart({ values, delay }: { values: number[]; delay: number })
         {labels.map((label, i) => (
           <div key={label} className="text-center">
             <p className="text-xs font-medium text-[var(--text-primary)]">{values[i]}</p>
-            <p className="truncate text-[11px] text-[var(--text-secondary)]">{label}</p>
+            <p className="truncate text-sm text-[var(--text-secondary)]">{label}</p>
           </div>
         ))}
       </div>

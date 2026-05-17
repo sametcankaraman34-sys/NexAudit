@@ -129,7 +129,7 @@ function TimelineItem({
           {entry.optimizationGains.map((gain) => (
             <span
               key={gain}
-              className="rounded-md border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-secondary)]"
+              className="rounded-md border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-0.5 text-[13px] font-medium text-[var(--text-secondary)]"
             >
               {gain}
             </span>
@@ -151,7 +151,7 @@ function MiniStat({
 }) {
   return (
     <div className={cn("rounded-lg border border-[var(--border)]/80 bg-[var(--surface-soft)]/50 px-2.5 py-2", className)}>
-      <p className="text-[10px] text-[var(--text-secondary)]">{label}</p>
+      <p className="text-[13px] text-[var(--text-secondary)]">{label}</p>
       <p className="text-sm font-semibold tabular-nums text-[var(--text-primary)]">{value}</p>
     </div>
   );

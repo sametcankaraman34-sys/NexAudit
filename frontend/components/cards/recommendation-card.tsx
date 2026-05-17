@@ -60,7 +60,7 @@ export function RecommendationCard({
         <p
           className={cn(
             "text-[var(--text-secondary)]",
-            compact ? "text-xs leading-relaxed" : "text-xs",
+            "text-ui-secondary leading-relaxed",
           )}
         >
           {item.description}

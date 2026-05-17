@@ -9,12 +9,12 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, greeting, compact }: PageHeaderProps) {
   return (
-    <header className={cn(compact ? "mb-0" : "mb-8")}>
+    <header className={cn(compact ? "mb-0" : "mb-6 lg:mb-8")}>
       {greeting && (
         <p
           className={cn(
             "font-semibold tracking-tight text-[var(--text-primary)]",
-            compact ? "mb-0.5 text-2xl" : "mb-1 text-2xl",
+            compact ? "mb-0.5 text-ui-page-title" : "mb-1 text-ui-page-title",
           )}
         >
           {greeting}
@@ -24,7 +24,7 @@ export function PageHeader({ title, description, greeting, compact }: PageHeader
         <h1
           className={cn(
             "font-semibold tracking-tight text-[var(--text-primary)]",
-            compact ? "text-xl" : "text-2xl",
+            compact ? "text-ui-section-title" : "text-ui-page-title",
           )}
         >
           {title}
@@ -34,8 +34,8 @@ export function PageHeader({ title, description, greeting, compact }: PageHeader
       {description && (
         <p
           className={cn(
-            "text-[var(--text-secondary)]",
-            compact ? "text-sm" : "mt-1 text-sm",
+            "text-ui-secondary text-[var(--text-secondary)]",
+            compact ? "mt-0.5" : "mt-1.5",
           )}
         >
           {description}

@@ -124,7 +124,7 @@ export function AuditOnboardingPanel() {
         <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
           Oluşturma sonrası
         </p>
-        <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+        <div className="flex flex-wrap items-center gap-1.5 text-sm">
           {pipelineSteps.map((step, i) => (
             <span key={step.label} className="inline-flex items-center gap-1.5">
               <span

@@ -31,8 +31,8 @@ export function AiInsightsPanel() {
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <SeverityBadge severity={insight.priority} size="sm" />
-              <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--primary)]">
-                NexAudit Intelligence
+              <span className="text-[13px] font-medium uppercase tracking-wide text-[var(--primary)]">
+                NexAudit Zeka
               </span>
             </div>
             <p className="text-sm leading-relaxed text-[var(--text-primary)]">{insight.insight}</p>

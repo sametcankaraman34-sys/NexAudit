@@ -40,7 +40,7 @@ export function PremiumSelect({
       <label htmlFor={id} className="block text-sm font-medium text-[var(--text-primary)]">
         {label}
       </label>
-      <Select value={value} onValueChange={onValueChange}>
+      <Select value={value} onValueChange={onValueChange} items={[...options]}>
         <SelectTrigger
           id={id}
           className={cn(
@@ -64,6 +64,7 @@ export function PremiumSelect({
             <SelectItem
               key={option.value}
               value={option.value}
+              label={option.label}
               className={cn(
                 "cursor-pointer rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)]",
                 "transition-colors duration-[var(--transition-fast)]",

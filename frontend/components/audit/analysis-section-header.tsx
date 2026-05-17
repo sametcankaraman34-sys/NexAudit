@@ -6,8 +6,8 @@ interface AnalysisSectionHeaderProps {
 export function AnalysisSectionHeader({ title, description }: AnalysisSectionHeaderProps) {
   return (
     <div className="mb-4">
-      <h2 className="text-base font-semibold text-[var(--text-primary)]">{title}</h2>
-      <p className="mt-0.5 text-sm text-[var(--text-secondary)]">{description}</p>
+      <h2 className="text-ui-section-title font-semibold text-[var(--text-primary)]">{title}</h2>
+      <p className="mt-1 text-ui-secondary text-[var(--text-secondary)]">{description}</p>
     </div>
   );
 }

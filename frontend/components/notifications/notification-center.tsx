@@ -99,7 +99,7 @@ export function NotificationBell() {
       >
         <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--danger)] px-1 text-[9px] font-semibold leading-none text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--danger)] px-1 text-[12px] font-semibold leading-none text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -113,14 +113,14 @@ export function NotificationBell() {
             onClick={() => setOpen(false)}
           />
           <div
-            className="notif-dropdown absolute right-0 top-[calc(100%+8px)] z-50 w-[min(360px,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-[var(--border)]/90 bg-[var(--surface)]/95 shadow-[0_8px_30px_rgba(15,23,42,0.1),0_2px_8px_rgba(15,23,42,0.04)] backdrop-blur-md"
+            className="notif-dropdown fixed left-3 right-3 top-[calc(var(--topbar-height)+0.5rem)] z-50 overflow-hidden rounded-xl border border-[var(--border)]/90 bg-[var(--surface)]/95 shadow-[0_8px_30px_rgba(15,23,42,0.1),0_2px_8px_rgba(15,23,42,0.04)] backdrop-blur-md sm:absolute sm:left-auto sm:right-0 sm:top-[calc(100%+8px)] sm:w-[min(360px,calc(100vw-1.5rem))]"
             role="menu"
             aria-label="Bildirimler"
           >
             <div className="flex items-center justify-between border-b border-[var(--border)]/80 px-3.5 py-2.5">
               <p className="text-xs font-semibold text-[var(--text-primary)]">Bildirimler</p>
               {unreadCount > 0 && (
-                <span className="text-[10px] font-medium text-[var(--text-secondary)]">
+                <span className="text-[13px] font-medium text-[var(--text-secondary)]">
                   {unreadCount} yeni
                 </span>
               )}
@@ -181,10 +181,10 @@ function NotificationRow({
           <p className="truncate text-[13px] font-medium leading-tight text-[var(--text-primary)]">
             {notification.title}
           </p>
-          <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[var(--text-secondary)]">
+          <p className="mt-0.5 line-clamp-2 text-sm leading-snug text-[var(--text-secondary)]">
             {notification.message}
           </p>
-          <p className="mt-1 text-[10px] text-[var(--text-secondary)]/90">{notification.time}</p>
+          <p className="mt-1 text-[13px] text-[var(--text-secondary)]/90">{notification.time}</p>
         </div>
         {!notification.read && (
           <span

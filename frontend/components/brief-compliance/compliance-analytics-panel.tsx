@@ -64,11 +64,11 @@ function ComplianceAnalyticRow({
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <SeverityBadge severity={statusToSeverity[item.status]} size="sm" />
-            <span className="text-[10px] font-medium text-[var(--text-secondary)]">
+            <span className="text-[13px] font-medium text-[var(--text-secondary)]">
               {statusLabels[item.status]}
             </span>
-            <span className="text-[10px] text-[var(--border)]">·</span>
-            <span className="text-[10px] font-medium text-[var(--text-secondary)]">
+            <span className="text-[13px] text-[var(--border)]">·</span>
+            <span className="text-[13px] font-medium text-[var(--text-secondary)]">
               {item.affectedArea}
             </span>
           </div>
@@ -121,7 +121,7 @@ function MetricCell({
 
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-2">
-      <p className="text-[10px] font-medium text-[var(--text-secondary)]">{label}</p>
+      <p className="text-[13px] font-medium text-[var(--text-secondary)]">{label}</p>
       <p
         className={cn("mt-0.5 text-sm font-bold tabular-nums text-[var(--text-primary)]")}
         style={impactColor ? { color: impactColor } : undefined}

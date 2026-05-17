@@ -38,7 +38,7 @@ export function AppShell({ children }: AppShellProps) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar showMenuButton onMenuClick={() => setMobileOpen(true)} />
-        <main className={cn("page-enter flex-1 overflow-auto p-4 lg:p-6")}>
+        <main className={cn("page-enter flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-4 lg:p-6")}>
           {children}
         </main>
       </div>

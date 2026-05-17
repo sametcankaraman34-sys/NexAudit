@@ -30,7 +30,7 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
         href="/"
         onClick={onNavigate}
         className={cn(
-          "flex items-center px-5 py-6 transition-opacity duration-[220ms] hover:opacity-90",
+          "flex items-center px-5 py-5 transition-opacity duration-[220ms] hover:opacity-90",
           collapsed && "justify-center px-3",
         )}
       >
@@ -51,7 +51,7 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
         {NAV_GROUPS.map((group) => (
           <div key={group.title || "main"}>
             {group.title && !collapsed && (
-              <p className="mb-2 px-3 text-[10px] font-semibold tracking-wider text-[var(--text-secondary)]">
+              <p className="mb-2 px-3 text-[13px] font-semibold tracking-wider text-[var(--text-secondary)]">
                 {group.title}
               </p>
             )}
@@ -66,7 +66,7 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
                       onClick={onNavigate}
                       title={collapsed ? item.label : undefined}
                       className={cn(
-                        "sidebar-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
+                        "sidebar-item flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium",
                         active
                           ? "bg-[var(--primary)] text-white shadow-sm"
                           : "text-[var(--text-secondary)] hover:bg-[var(--surface-soft)] hover:text-[var(--text-primary)]",
@@ -74,7 +74,7 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
                       )}
                     >
                       <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
-                      {!collapsed && <span>{item.label}</span>}
+                      {!collapsed && <span className="truncate">{item.label}</span>}
                     </Link>
                   </li>
                 );
@@ -96,17 +96,17 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-[var(--text-primary)]">
+              <p className="truncate text-[15px] font-medium text-[var(--text-primary)]">
                 {DEMO_USER.name}
               </p>
-              <p className="truncate text-xs text-[var(--text-secondary)]">{DEMO_USER.email}</p>
+              <p className="truncate text-ui-secondary text-[var(--text-secondary)]">
+                {DEMO_USER.email}
+              </p>
             </div>
           )}
         </div>
         {!collapsed && (
-          <p className="mt-4 px-1 text-[10px] text-[var(--text-secondary)]">
-            © 2026 NexAudit
-          </p>
+          <p className="mt-4 px-1 text-[13px] text-[var(--text-secondary)]">© 2026 NexAudit</p>
         )}
       </div>
     </aside>

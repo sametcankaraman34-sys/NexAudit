@@ -65,7 +65,7 @@ function AuditIssueQueueItem({
           <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
             <span className="font-medium text-[var(--text-primary)]/80">{issue.location}</span>
             {issue.affectedElement && (
-              <span className="ml-2 font-mono text-[10px] text-[var(--text-secondary)]">
+              <span className="ml-2 font-mono text-[13px] text-[var(--text-secondary)]">
                 {issue.affectedElement}
               </span>
             )}
@@ -76,7 +76,7 @@ function AuditIssueQueueItem({
 
       <div className="flex shrink-0 flex-col items-stretch gap-2 sm:w-36 sm:items-end">
         <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
-          <span className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+          <span className="flex items-center gap-1 text-[13px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
             <Zap className="h-3 w-3 text-[var(--primary)]" />
             Potansiyel
           </span>

@@ -40,7 +40,7 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps) {
       </div>
 
       <section className="mb-6">
-        <h2 className="mb-4 text-sm font-semibold text-[var(--text-primary)]">Denetim Aşamaları</h2>
+        <h2 className="mb-4 text-ui-section-title font-semibold text-[var(--text-primary)]">Denetim Aşamaları</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {mockAuditPhases.map((phase) => (
             <AuditPhaseCard key={phase.id} phase={phase} />
