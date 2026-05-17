@@ -341,13 +341,23 @@ premium bir WordPress denetim platformu oluşturmak.
 
 # Vercel Deploy
 
-Next.js uygulaması `frontend/` klasöründedir. Vercel'de proje ayarlarında:
+Next.js uygulaması **`frontend/`** klasöründedir. Kök dizinde ayrı `package.json` yoktur; `vercel.json` monorepo build tanımlar.
 
-**Settings → General → Root Directory → `frontend`**
+## Vercel Dashboard (önerilen)
 
-olarak ayarlayın. Ardından Framework Preset: **Next.js** seçili olsun.
+**Settings → General**
 
-Yerel build:
+| Alan | Değer |
+|------|--------|
+| Root Directory | `frontend` |
+| Framework Preset | Next.js |
+| Node.js Version | 20.x |
+| Install Command | *(boş — override kapatın)* |
+| Build Command | *(boş)* |
+
+Önemli: `npm install --prefix frontend` gibi **özel Install Command kullanmayın**. Root Directory `frontend` olunca Vercel doğru klasörde çalışır.
+
+## Yerel build
 
 ```bash
 cd frontend
