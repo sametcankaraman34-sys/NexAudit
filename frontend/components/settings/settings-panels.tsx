@@ -414,6 +414,7 @@ function AiPanel() {
 function DangerPanel() {
   const { activeProject } = useActiveProject();
   const deleteProject = useAppStore((s) => s.deleteProject);
+  const archiveProject = useAppStore((s) => s.archiveProject);
   const resetDatabase = useAppStore((s) => s.resetDatabase);
 
   return (
@@ -429,14 +430,28 @@ function DangerPanel() {
         danger
       >
         <DangerRow
-          label="Projeyi sil"
-          description={`${activeProject.name} ve tüm denetim geçmişi`}
-          actionLabel="Projeyi sil"
+          label="Projeyi arşivle"
+          description={`${activeProject.name} iptal edilir ve arşive alınır`}
+          actionLabel="Projeyi iptal et"
+          variant="outline"
           onAction={() => {
-            if (window.confirm(`${activeProject.name} silinsin mi?`)) {
-              void deleteProject(activeProject.id).then(() =>
-                NexToast.success("Proje silindi", activeProject.name),
-              );
+            if (
+              window.confirm(
+                `${activeProject.name} arşivlensin mi? İstediğin zaman yeni bir denetime başlayabilirsin.`,
+              )
+            ) {
+              void archiveProject(activeProject.id);
+            }
+          }}
+        />
+        <DangerRow
+          label="Projeyi sil"
+          description={`${activeProject.name} ve tüm denetim geçmişi kalıcı olarak silinir`}
+          actionLabel="Projeyi sil"
+          bordered
+          onAction={() => {
+            if (window.confirm(`${activeProject.name} kalıcı olarak silinsin mi?`)) {
+              void deleteProject(activeProject.id);
             }
           }}
         />

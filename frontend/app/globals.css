@@ -826,3 +826,187 @@
     transform: none;
   }
 }
+
+/* Outcome feedback — proje / aşama sonuç animasyonları */
+@keyframes outcome-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes outcome-modal-card-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes outcome-modal-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes outcome-modal-card-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+}
+
+@keyframes outcome-check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes outcome-check-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes outcome-ring-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes outcome-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px) scale(1);
+  }
+}
+
+@keyframes outcome-neutral-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes outcome-remove-fade {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.outcome-modal-backdrop-enter {
+  animation: outcome-modal-backdrop-in 380ms ease forwards;
+}
+
+.outcome-modal-card-enter {
+  animation: outcome-modal-card-in 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.outcome-modal-backdrop-exit {
+  animation: outcome-modal-backdrop-out 280ms ease forwards;
+}
+
+.outcome-modal-card-exit {
+  animation: outcome-modal-card-out 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.outcome-modal-card-success {
+  box-shadow:
+    0 0 0 1px rgba(16, 185, 129, 0.1),
+    0 24px 64px rgba(15, 23, 42, 0.1);
+}
+
+.outcome-check-stroke {
+  animation: outcome-check-draw 700ms cubic-bezier(0.22, 1, 0.36, 1) 200ms forwards;
+}
+
+.outcome-check-icon {
+  animation: outcome-check-pop 450ms cubic-bezier(0.22, 1, 0.36, 1) 320ms both;
+}
+
+.outcome-ring-glow {
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%);
+  animation: outcome-ring-glow 500ms ease 100ms both;
+}
+
+.outcome-confetti-piece {
+  animation: outcome-confetti-fall 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.outcome-neutral-icon {
+  animation: outcome-neutral-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.outcome-remove-icon {
+  animation: outcome-remove-fade 350ms ease both;
+}
+
+.outcome-remove-dot {
+  animation: outcome-remove-fade 400ms ease 80ms both;
+}
+
+.outcome-stage-complete-btn:hover {
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.14);
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outcome-modal-backdrop-enter,
+  .outcome-modal-card-enter,
+  .outcome-modal-backdrop-exit,
+  .outcome-modal-card-exit,
+  .outcome-check-stroke,
+  .outcome-check-icon,
+  .outcome-ring-glow,
+  .outcome-confetti-piece,
+  .outcome-neutral-icon,
+  .outcome-remove-icon,
+  .outcome-remove-dot {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}

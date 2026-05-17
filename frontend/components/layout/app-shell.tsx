@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { OutcomeFeedbackRoot } from "@/components/feedback/outcome-feedback-root";
 import { LiveEventBridge } from "@/components/toast/live-event-bridge";
 import { ToastProvider } from "@/components/toast/toast-provider";
 import { ProjectProvider, useActiveProject } from "@/lib/project-context";
@@ -37,6 +38,7 @@ export function AppShell({ children }: AppShellProps) {
       <StoreProvider>
       <ProjectProvider>
         <LiveEventBridge />
+        <OutcomeFeedbackRoot />
         <div className="flex min-h-screen bg-[var(--bg)]">
           <div className="hidden shrink-0 lg:block">
             <Sidebar />

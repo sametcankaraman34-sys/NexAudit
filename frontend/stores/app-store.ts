@@ -4,7 +4,10 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { createInitialDatabase, DEFAULT_PROJECT_ID } from "@/mock-data/seed";
 import { withMockApi } from "@/services/mock-api";
+import { OutcomeFeedback } from "@/lib/outcome-feedback";
+import { completeProjectPhase } from "@/services/phase-completion";
 import { recalculateProjectMetrics } from "@/services/project-metrics";
+import type { AuditPhaseId } from "@/types";
 import type {
   AppDatabase,
   AppSettings,
@@ -22,6 +25,8 @@ interface AppStore extends AppDatabase {
   createProject: (input: CreateProjectInput) => Promise<Project>;
   updateProject: (id: string, patch: Partial<Project>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+  archiveProject: (id: string) => Promise<void>;
+  completePhase: (projectId: string, phaseId: AuditPhaseId) => Promise<void>;
   updateIssueStatus: (
     projectId: string,
     issueId: string,
@@ -160,6 +165,7 @@ export const useAppStore = create<AppStore>()(
       },
 
       deleteProject: async (id) => {
+        const projectName = get().projects.find((p) => p.id === id)?.name ?? "Proje";
         set({ async: { isLoading: true, lastAction: "deleteProject" } });
         await withMockApi(() => {
           set((state) => {
@@ -181,6 +187,77 @@ export const useAppStore = create<AppStore>()(
             };
           });
         });
+        OutcomeFeedback.projectDeleted(projectName);
+      },
+
+      archiveProject: async (id) => {
+        const project = get().projects.find((p) => p.id === id);
+        if (!project) return;
+        set({ async: { isLoading: true, lastAction: "archiveProject" } });
+        await withMockApi(() => {
+          set((state) => ({
+            projects: state.projects.map((p) =>
+              p.id === id
+                ? {
+                    ...p,
+                    status: "archived" as const,
+                    lastActivity: "Proje arşive kaldırıldı",
+                    updatedAt: new Date().toISOString().slice(0, 10),
+                  }
+                : p,
+            ),
+            async: { isLoading: false, lastAction: "archiveProject" },
+          }));
+        });
+        OutcomeFeedback.projectCancelled(id, project.name);
+      },
+
+      completePhase: async (projectId, phaseId) => {
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return;
+        const current = project.phases.find((p) => p.id === phaseId);
+        if (!current || current.status === "completed") return;
+
+        set({ async: { isLoading: true, lastAction: "completePhase" } });
+        await withMockApi(
+          () => {
+            const { phases, unlockedPhaseId, allCompleted } = completeProjectPhase(
+              project.phases,
+              phaseId,
+            );
+            const updated: Project = {
+              ...project,
+              phases,
+              lastActivity:
+                phaseId === "website"
+                  ? "Web tasarım denetimi tamamlandı"
+                  : phaseId === "seo"
+                    ? "SEO optimizasyonu tamamlandı"
+                    : "Reklam & dönüşüm denetimi tamamlandı",
+              updatedAt: new Date().toISOString().slice(0, 10),
+            };
+            set((state) => ({
+              ...syncProjectInState(state, projectId, updated),
+              async: { isLoading: false, lastAction: "completePhase" },
+            }));
+
+            OutcomeFeedback.stageCompleted(projectId, project.name, phaseId);
+            if (unlockedPhaseId) {
+              window.setTimeout(
+                () =>
+                  OutcomeFeedback.stageUnlocked(projectId, project.name, unlockedPhaseId),
+                480,
+              );
+            }
+            if (allCompleted) {
+              window.setTimeout(
+                () => OutcomeFeedback.projectCompleted(projectId, project.name),
+                unlockedPhaseId ? 1100 : 520,
+              );
+            }
+          },
+          { delayMs: 360 },
+        );
       },
 
       updateIssueStatus: async (projectId, issueId, status) => {
@@ -197,6 +274,26 @@ export const useAppStore = create<AppStore>()(
               const websitePhase = updated.phases.find((p) => p.id === "website");
               if (websitePhase && status === "resolved") {
                 websitePhase.progress = Math.min(100, websitePhase.progress + 6);
+                if (
+                  websitePhase.progress >= 100 &&
+                  websitePhase.status !== "completed"
+                ) {
+                  const { phases, unlockedPhaseId, allCompleted } = completeProjectPhase(
+                    updated.phases,
+                    "website",
+                  );
+                  updated.phases = phases;
+                  const name = project.name;
+                  queueMicrotask(() => {
+                    OutcomeFeedback.stageCompleted(project.id, name, "website");
+                    if (unlockedPhaseId) {
+                      OutcomeFeedback.stageUnlocked(project.id, name, unlockedPhaseId);
+                    }
+                    if (allCompleted) {
+                      OutcomeFeedback.projectCompleted(project.id, name);
+                    }
+                  });
+                }
               }
               return {
                 issuesByProject: { ...state.issuesByProject, [projectId]: issues },

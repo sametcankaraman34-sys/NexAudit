@@ -3,6 +3,7 @@
 import {
   AlertCircle,
   AlertTriangle,
+  Archive,
   CheckCircle2,
   Info,
   X,
@@ -35,6 +36,7 @@ const variantMeta: Record<
   info: { icon: Info, accent: "var(--primary)", duration: DEFAULT_DURATION },
   warning: { icon: AlertTriangle, accent: "var(--warning)", duration: 5800 },
   critical: { icon: AlertCircle, accent: "var(--danger)", duration: 7000 },
+  neutral: { icon: Archive, accent: "var(--text-secondary)", duration: 3400 },
 };
 
 interface ToastContextValue {
@@ -54,12 +56,14 @@ function toastToLiveNotification(toast: Toast): Notification {
     info: "system",
     warning: "seo",
     critical: "critical",
+    neutral: "system",
   };
   const severityMap: Record<ToastVariant, IssueSeverity> = {
     success: "low",
     info: "improvement",
     warning: "medium",
     critical: "critical",
+    neutral: "low",
   };
   return {
     id: `live-${toast.id}`,
