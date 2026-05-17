@@ -5,9 +5,13 @@ frontend/node_modules/
 # next.js
 frontend/.next/
 frontend/out/
+**/.next/
+**/out/
 
 # build
 frontend/build/
+**/dist/
+**/build/
 *.tsbuildinfo
 
 # env
