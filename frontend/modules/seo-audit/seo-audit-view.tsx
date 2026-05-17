@@ -15,7 +15,7 @@ import { isPhaseLocked, getLockedMessage } from "@/lib/audit-lock";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function SeoAuditView() {
-  const { activeProject } = useActiveProject();
+  const { activeProject, activeProjectId } = useActiveProject();
   const { seoAudit } = useProjectWorkspace();
 
   if (isPhaseLocked("seo", activeProject.phases)) {
@@ -38,7 +38,7 @@ export function SeoAuditView() {
 
   return (
     <div className="audit-page space-y-6 lg:space-y-8">
-      <IntelligenceHero summary={seoAudit.summary} icon={Search} />
+      <IntelligenceHero key={activeProjectId} summary={seoAudit.summary} icon={Search} />
 
       <section className="audit-section" style={{ animationDelay: "90ms" }}>
         <AnalysisSectionHeader
@@ -47,8 +47,12 @@ export function SeoAuditView() {
         />
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {seoAudit.categories.map((category, index) => (
-            <li key={category.id} className="list-none">
-              <AnalysisCategoryCard category={category} animationDelay={120 + index * 55} />
+            <li key={`${activeProjectId}-${category.id}`} className="list-none">
+              <AnalysisCategoryCard
+                category={category}
+                barChartKey={`${activeProjectId}-${category.barValues.join("-")}`}
+                animationDelay={120 + index * 55}
+              />
             </li>
           ))}
         </ul>

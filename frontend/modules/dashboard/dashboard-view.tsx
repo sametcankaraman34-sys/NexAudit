@@ -8,10 +8,12 @@ import { StatCard } from "@/components/cards/stat-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { IssueList } from "@/components/tables/issue-list";
 import { DEMO_USER } from "@/constants/navigation";
-import { useProjectWorkspace } from "@/lib/project-context";
+import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function DashboardView() {
+  const { activeProjectId } = useActiveProject();
   const { dashboard } = useProjectWorkspace();
+  const distributionKey = dashboard.issueDistribution.map((d) => d.value).join("-");
 
   return (
     <div className="space-y-4">
@@ -24,7 +26,13 @@ export function DashboardView() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {dashboard.stats.map((stat, index) => (
-          <StatCard key={stat.id} stat={stat} animationIndex={index} compact />
+          <StatCard
+            key={`${activeProjectId}-${stat.id}-${stat.chart?.values?.join(",") ?? stat.value}`}
+            stat={stat}
+            chartRemountKey={`${activeProjectId}-${stat.id}`}
+            animationIndex={index}
+            compact
+          />
         ))}
       </div>
 
@@ -70,6 +78,7 @@ export function DashboardView() {
         <aside className="flex min-w-0 flex-1 flex-col gap-3 xl:max-w-[340px]">
           <BriefScoreCard compact />
           <IssueDistributionChart
+            key={`${activeProjectId}-${distributionKey}`}
             data={dashboard.issueDistribution}
             stretch
             animationDelay={120}

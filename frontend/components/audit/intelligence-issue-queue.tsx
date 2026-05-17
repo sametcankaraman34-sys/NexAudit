@@ -1,6 +1,11 @@
+"use client";
+
 import { ChevronRight, Zap } from "lucide-react";
 import { SeverityBadge } from "@/components/ui/severity-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useActiveProject } from "@/lib/project-context";
+import { NexToast } from "@/lib/nex-toast";
+import { useAppStore } from "@/stores/app-store";
 import type { IntelligenceIssue } from "@/types/audit-intelligence";
 import { cn } from "@/lib/utils";
 
@@ -50,11 +55,22 @@ function IssueQueueItem({
   issue: IntelligenceIssue;
   animationDelay: number;
 }) {
+  const { activeProjectId } = useActiveProject();
+  const updateIssueStatus = useAppStore((s) => s.updateIssueStatus);
+  const isLoading = useAppStore((s) => s.async.isLoading);
+
+  const resolve = async () => {
+    if (issue.status === "resolved") return;
+    await updateIssueStatus(activeProjectId, issue.id, "resolved");
+    NexToast.success("Sorun çözüldü", issue.title);
+  };
+
   return (
     <article
       className={cn(
         "audit-row group flex flex-col gap-3 px-5 py-4 transition-colors duration-[var(--transition-base)]",
         "hover:bg-[var(--surface-soft)]/70 sm:flex-row sm:items-center sm:gap-4",
+        issue.status === "resolved" && "opacity-70",
       )}
       style={{ animationDelay: `${animationDelay}ms` }}
     >
@@ -64,7 +80,12 @@ function IssueQueueItem({
           <StatusBadge variant={statusVariant[issue.status]} />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-ui-card-title font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)]">
+          <h3
+            className={cn(
+              "text-ui-card-title font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)]",
+              issue.status === "resolved" && "line-through text-[var(--text-secondary)]",
+            )}
+          >
             {issue.title}
           </h3>
           <p className="mt-0.5 text-ui-secondary text-[var(--text-secondary)]">
@@ -75,13 +96,15 @@ function IssueQueueItem({
               </span>
             )}
           </p>
-          <p className="mt-1.5 text-ui-secondary leading-relaxed text-[var(--text-secondary)]">{issue.impact}</p>
+          <p className="mt-1.5 text-ui-secondary leading-relaxed text-[var(--text-secondary)]">
+            {issue.impact}
+          </p>
           {issue.fixHint && (
             <p className="mt-1 text-ui-secondary font-medium text-[var(--primary)]">{issue.fixHint}</p>
           )}
         </div>
       </div>
-      <div className="flex shrink-0 flex-col items-stretch gap-2 sm:w-36 sm:items-end">
+      <div className="flex shrink-0 flex-col items-stretch gap-2 sm:w-40 sm:items-end">
         <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
           <span className="flex items-center gap-1 text-[13px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
             <Zap className="h-3 w-3 text-[var(--primary)]" />
@@ -102,6 +125,16 @@ function IssueQueueItem({
             }
           />
         </div>
+        {issue.status !== "resolved" && (
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={resolve}
+            className="btn-transition rounded-lg bg-[var(--primary-soft)] px-3 py-1.5 text-[12px] font-semibold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white"
+          >
+            Çözüldü işaretle
+          </button>
+        )}
         <ChevronRight className="hidden h-4 w-4 text-[var(--text-secondary)] opacity-0 transition-opacity group-hover:opacity-100 sm:block" />
       </div>
     </article>

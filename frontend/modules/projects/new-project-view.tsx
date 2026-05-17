@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { ArrowRight, Radar } from "lucide-react";
 import { NexToast } from "@/lib/nex-toast";
+import { useAppStore } from "@/stores/app-store";
 import { AuditOnboardingPanel } from "@/components/projects/audit-onboarding-panel";
 import { PageHeader } from "@/components/layout/page-header";
 import { Input } from "@/components/ui/input";
@@ -45,14 +48,28 @@ const inputClassName = cn(
 );
 
 export function NewProjectView() {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const router = useRouter();
+  const createProject = useAppStore((s) => s.createProject);
+  const isLoading = useAppStore((s) => s.async.isLoading);
+  const [sector, setSector] = useState("ecommerce");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
-    const name =
-      (form.elements.namedItem("name") as HTMLInputElement | null)?.value?.trim() ||
-      "Yeni proje";
-    NexToast.projectCreated(name);
-    NexToast.auditStarted("Web Tasarım Denetimi", "/website-audit", name);
+    const name = (form.elements.namedItem("name") as HTMLInputElement).value.trim();
+    const domain = (form.elements.namedItem("domain") as HTMLInputElement).value.trim();
+    const customerName = (form.elements.namedItem("client") as HTMLInputElement).value.trim();
+
+    const project = await createProject({
+      name,
+      domain: domain.replace(/^https?:\/\//, ""),
+      customerName,
+      sector,
+    });
+
+    NexToast.projectCreated(project.name);
+    NexToast.auditStarted("Web Tasarım Denetimi", "/website-audit", project.name);
+    router.push("/");
   };
 
   return (
@@ -130,6 +147,8 @@ export function NewProjectView() {
                 hint="Sektöre göre denetim öncelikleri özelleştirilir"
                 placeholder="Sektör seçin"
                 options={PROJECT_SECTORS}
+                value={sector}
+                onValueChange={(v) => v && setSector(v)}
               />
             </div>
 
@@ -149,6 +168,7 @@ export function NewProjectView() {
             >
               <button
                 type="submit"
+                disabled={isLoading}
                 className={cn(
                   "btn-transition group inline-flex flex-1 items-center justify-center gap-2 rounded-xl",
                   "bg-[var(--primary)] px-5 py-3.5 text-sm font-semibold text-white",
@@ -156,7 +176,7 @@ export function NewProjectView() {
                   "hover:bg-[var(--primary-hover)] hover:shadow-[0_2px_4px_rgba(99,102,241,0.25),0_12px_28px_rgba(99,102,241,0.32)]",
                 )}
               >
-                Denetim Sürecini Başlat
+                {isLoading ? "Oluşturuluyor…" : "Denetim Sürecini Başlat"}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
               <Link

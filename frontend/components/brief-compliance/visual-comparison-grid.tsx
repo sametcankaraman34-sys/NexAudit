@@ -2,10 +2,11 @@
 
 import { GitCompare } from "lucide-react";
 import { AnalysisSectionHeader } from "@/components/audit/analysis-section-header";
-import { useProjectWorkspace } from "@/lib/project-context";
+import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 import { ComplianceBar, scoreColor } from "./mini-score-ring";
 
 export function VisualComparisonGrid() {
+  const { activeProjectId } = useActiveProject();
   const { briefCompliance } = useProjectWorkspace();
   const visualComparisons = briefCompliance.visualComparisons;
   return (
@@ -37,12 +38,16 @@ export function VisualComparisonGrid() {
                 </span>
               </div>
 
-              <ComplianceBar value={item.matchPercent} delayMs={160 + index * 45} />
+              <ComplianceBar
+                key={`${activeProjectId}-${item.id}-match`}
+                value={item.matchPercent}
+                delayMs={160 + index * 45}
+              />
 
               <div className="mt-3 flex h-9 items-end gap-1">
                 {item.barValues.map((v, i) => (
                   <span
-                    key={i}
+                    key={`${activeProjectId}-${item.id}-${i}-${v}`}
                     className="audit-vbar-grow flex-1 rounded-sm bg-[var(--primary)]/70"
                     style={{
                       height: `${Math.max(20, v)}%`,

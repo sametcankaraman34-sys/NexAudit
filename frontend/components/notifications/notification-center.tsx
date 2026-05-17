@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getUnreadNotificationCount } from "@/data/mock-notifications";
 import { subscribeLiveNotifications } from "@/lib/live-notification-store";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
+import { useAppStore } from "@/stores/app-store";
 import type { Notification, NotificationCategory } from "@/types";
 import type { IssueSeverity } from "@/types";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,9 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const { activeProjectId } = useActiveProject();
   const { notifications: projectNotifications } = useProjectWorkspace();
+  const markRead = useAppStore((s) => s.markNotificationRead);
+  const markAllRead = useAppStore((s) => s.markAllNotificationsRead);
+  const clearAll = useAppStore((s) => s.clearNotifications);
   const [items, setItems] = useState<Notification[]>(projectNotifications);
   const unreadCount = useMemo(() => getUnreadNotificationCount(items), [items]);
 
@@ -61,9 +65,13 @@ export function NotificationBell() {
     });
   }, [items]);
 
-  const markRead = useCallback((id: string) => {
-    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-  }, []);
+  const markReadLocal = useCallback(
+    (id: string) => {
+      markRead(activeProjectId, id);
+      setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    },
+    [activeProjectId, markRead],
+  );
 
   useEffect(() => {
     return subscribeLiveNotifications((notification) => {
@@ -126,11 +134,37 @@ export function NotificationBell() {
           >
             <div className="flex items-center justify-between border-b border-[var(--border)]/80 px-3.5 py-2.5">
               <p className="text-xs font-semibold text-[var(--text-primary)]">Bildirimler</p>
-              {unreadCount > 0 && (
-                <span className="text-[13px] font-medium text-[var(--text-secondary)]">
-                  {unreadCount} yeni
-                </span>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {unreadCount > 0 && (
+                  <span className="text-[13px] font-medium text-[var(--text-secondary)]">
+                    {unreadCount} yeni
+                  </span>
+                )}
+                {items.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      className="text-[12px] font-medium text-[var(--primary)] hover:underline"
+                      onClick={() => {
+                        markAllRead(activeProjectId);
+                        setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+                      }}
+                    >
+                      Tümünü oku
+                    </button>
+                    <button
+                      type="button"
+                      className="text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--danger)]"
+                      onClick={() => {
+                        clearAll(activeProjectId);
+                        setItems([]);
+                      }}
+                    >
+                      Temizle
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             <ul className="notif-dropdown-list max-h-[min(280px,50vh)] overflow-y-auto overscroll-contain py-1">
@@ -140,7 +174,7 @@ export function NotificationBell() {
                   notification={notification}
                   index={index}
                   onSelect={() => {
-                    markRead(notification.id);
+                    markReadLocal(notification.id);
                     setOpen(false);
                   }}
                 />

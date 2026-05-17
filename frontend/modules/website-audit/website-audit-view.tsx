@@ -8,14 +8,19 @@ import { IntelligenceHero } from "@/components/audit/intelligence-hero";
 import { IntelligenceIssueQueue } from "@/components/audit/intelligence-issue-queue";
 import { IntelligenceMetricGrid } from "@/components/audit/intelligence-metric-grid";
 import { IntelligencePerformancePanel } from "@/components/audit/intelligence-performance-panel";
-import { useProjectWorkspace } from "@/lib/project-context";
+import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function WebsiteAuditView() {
+  const { activeProjectId } = useActiveProject();
   const { websiteAudit } = useProjectWorkspace();
 
   return (
     <div className="audit-page space-y-6 lg:space-y-8">
-      <IntelligenceHero summary={websiteAudit.intelligenceSummary} icon={Activity} />
+      <IntelligenceHero
+        key={activeProjectId}
+        summary={websiteAudit.intelligenceSummary}
+        icon={Activity}
+      />
 
       <section className="audit-section" style={{ animationDelay: "90ms" }}>
         <AnalysisSectionHeader
@@ -24,8 +29,12 @@ export function WebsiteAuditView() {
         />
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {websiteAudit.categories.map((category, index) => (
-            <li key={category.id} className="list-none">
-              <AnalysisCategoryCard category={category} animationDelay={120 + index * 55} />
+            <li key={`${activeProjectId}-${category.id}`} className="list-none">
+              <AnalysisCategoryCard
+                category={category}
+                barChartKey={`${activeProjectId}-${category.barValues.join("-")}`}
+                animationDelay={120 + index * 55}
+              />
             </li>
           ))}
         </ul>

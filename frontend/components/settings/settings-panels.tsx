@@ -27,6 +27,9 @@ import { DEMO_USER } from "@/constants/navigation";
 import { LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from "@/constants/ui-tr";
 import type { SettingsSectionId } from "@/data/mock-settings";
 import { mockIntegrations, mockTeamMembers } from "@/data/mock-settings";
+import { NexToast } from "@/lib/nex-toast";
+import { useActiveProject } from "@/lib/project-context";
+import { useAppStore } from "@/stores/app-store";
 import { cn } from "@/lib/utils";
 
 function useToggle(initial: boolean) {
@@ -112,12 +115,10 @@ function ProfilePanel() {
 }
 
 function NotificationsPanel() {
-  const [critical, setCritical] = useToggle(true);
-  const [seo, setSeo] = useToggle(true);
-  const [brief, setBrief] = useToggle(true);
-  const [realtime, setRealtime] = useToggle(true);
-  const [email, setEmail] = useToggle(false);
-  const [push, setPush] = useToggle(true);
+  const prefs = useAppStore((s) => s.settings.notifications);
+  const updateSettings = useAppStore((s) => s.updateSettings);
+  const set = (patch: Partial<typeof prefs>) =>
+    updateSettings({ notifications: { ...prefs, ...patch } });
 
   return (
     <div className="settings-panel space-y-4">
@@ -127,14 +128,14 @@ function NotificationsPanel() {
         description="Uyarı kanalları ve operasyonel bildirim tercihleri"
       />
       <SettingsSectionCard title="Denetim uyarıları">
-        <ToggleRow label="Kritik sorun uyarıları" description="Anında toast ve zil bildirimi" checked={critical} onChange={setCritical} bordered />
-        <ToggleRow label="SEO uyarıları" description="Teknik ve içerik SEO sapmaları" checked={seo} onChange={setSeo} bordered />
-        <ToggleRow label="Brief uyumsuzluk uyarıları" description="Marka ve CTA sapmaları" checked={brief} onChange={setBrief} bordered />
+        <ToggleRow label="Kritik sorun uyarıları" description="Anında toast ve zil bildirimi" checked={prefs.critical} onChange={(v) => set({ critical: v })} bordered />
+        <ToggleRow label="SEO uyarıları" description="Teknik ve içerik SEO sapmaları" checked={prefs.seo} onChange={(v) => set({ seo: v })} bordered />
+        <ToggleRow label="Brief uyumsuzluk uyarıları" description="Marka ve CTA sapmaları" checked={prefs.brief} onChange={(v) => set({ brief: v })} bordered />
       </SettingsSectionCard>
       <SettingsSectionCard title="Kanallar">
-        <ToggleRow label="Gerçek zamanlı bildirimler" description="Uygulama içi canlı toast" checked={realtime} onChange={setRealtime} bordered />
-        <ToggleRow label="E-posta bildirimleri" description="Özet ve kritik raporlar" checked={email} onChange={setEmail} bordered />
-        <ToggleRow label="Push bildirimleri" description="Tarayıcı push (yakında)" checked={push} onChange={setPush} />
+        <ToggleRow label="Gerçek zamanlı bildirimler" description="Uygulama içi canlı toast" checked={prefs.realtime} onChange={(v) => set({ realtime: v })} bordered />
+        <ToggleRow label="E-posta bildirimleri" description="Özet ve kritik raporlar" checked={prefs.email} onChange={(v) => set({ email: v })} bordered />
+        <ToggleRow label="Push bildirimleri" description="Tarayıcı push (yakında)" checked={prefs.push} onChange={(v) => set({ push: v })} />
       </SettingsSectionCard>
       <SaveBar />
     </div>
@@ -217,6 +218,9 @@ function ScanPanel() {
 }
 
 function IntegrationsPanel() {
+  const integrations = useAppStore((s) => s.settings.integrations);
+  const toggleIntegration = useAppStore((s) => s.toggleIntegration);
+
   return (
     <div className="settings-panel space-y-4">
       <SettingsPanelHeader
@@ -225,7 +229,7 @@ function IntegrationsPanel() {
         description="Analytics, bildirim ve AI servis bağlantıları"
       />
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {mockIntegrations.map((item) => (
+        {integrations.map((item) => (
           <li key={item.id}>
             <article className="card-interactive flex h-full flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-card)]">
               <div className="mb-3 flex items-start justify-between gap-2">
@@ -248,8 +252,16 @@ function IntegrationsPanel() {
                 type="button"
                 variant="outline"
                 className="btn-transition mt-auto h-8 w-full rounded-lg border-[var(--border)] text-xs"
+                onClick={() => {
+                  void toggleIntegration(item.id).then(() =>
+                    NexToast.success(
+                      item.connected ? "Bağlantı kesildi" : "Entegrasyon bağlandı",
+                      item.name,
+                    ),
+                  );
+                }}
               >
-                {item.connected ? "Yapılandır" : "Bağlan"}
+                {item.connected ? "Bağlantıyı kes" : "Bağlan"}
               </Button>
             </article>
           </li>
@@ -400,6 +412,10 @@ function AiPanel() {
 }
 
 function DangerPanel() {
+  const { activeProject } = useActiveProject();
+  const deleteProject = useAppStore((s) => s.deleteProject);
+  const resetDatabase = useAppStore((s) => s.resetDatabase);
+
   return (
     <div className="settings-panel space-y-4">
       <SettingsPanelHeader
@@ -414,16 +430,29 @@ function DangerPanel() {
       >
         <DangerRow
           label="Projeyi sil"
-          description="Ajans Demo Projesi ve tüm denetim geçmişi"
+          description={`${activeProject.name} ve tüm denetim geçmişi`}
           actionLabel="Projeyi sil"
+          onAction={() => {
+            if (window.confirm(`${activeProject.name} silinsin mi?`)) {
+              void deleteProject(activeProject.id).then(() =>
+                NexToast.success("Proje silindi", activeProject.name),
+              );
+            }
+          }}
         />
       </SettingsSectionCard>
       <SettingsSectionCard title="Veri sıfırlama" danger>
         <DangerRow
-          label="Denetim önbelleğini temizle"
-          description="Tarama sonuçları yeniden hesaplanır"
-          actionLabel="Önbelleği temizle"
+          label="Tüm verileri sıfırla"
+          description="Mock veritabanını varsayılan haline döndürür"
+          actionLabel="Veritabanını sıfırla"
           variant="outline"
+          onAction={() => {
+            if (window.confirm("Tüm uygulama verileri sıfırlansın mı?")) {
+              resetDatabase();
+              NexToast.success("Veriler sıfırlandı", "Varsayılan demo verisi yüklendi.");
+            }
+          }}
         />
         <DangerRow
           label="Analitik verileri sıfırla"
@@ -497,18 +526,21 @@ function DangerRow({
   actionLabel,
   variant = "danger",
   bordered,
+  onAction,
 }: {
   label: string;
   description: string;
   actionLabel: string;
   variant?: "danger" | "outline";
   bordered?: boolean;
+  onAction?: () => void;
 }) {
   return (
     <SettingsRow label={label} description={description} bordered={bordered}>
       <Button
         type="button"
         variant="outline"
+        onClick={onAction}
         className={cn(
           "btn-transition h-9 rounded-lg text-xs font-medium",
           variant === "danger"

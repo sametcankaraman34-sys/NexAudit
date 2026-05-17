@@ -1,25 +1,10 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
-import { mockProjects } from "@/data/mock-projects";
-import {
-  DEFAULT_PROJECT_ID,
-  getProjectById,
-  getProjectWorkspace,
-  type ProjectWorkspace,
-} from "@/data/project-workspace";
+import { useMemo, type ReactNode } from "react";
+import { getProjectWorkspaceFromDb, type ProjectWorkspace } from "@/data/project-workspace";
+import { useAppStore } from "@/stores/app-store";
+import type { AppDatabase } from "@/types/app-database";
 import type { Project } from "@/types";
-
-const STORAGE_KEY = "nexaudit-active-project";
 
 interface ProjectContextValue {
   activeProjectId: string;
@@ -28,82 +13,69 @@ interface ProjectContextValue {
   projects: Project[];
   setActiveProjectId: (id: string) => void;
   isSwitching: boolean;
+  isLoading: boolean;
 }
-
-const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const [activeProjectId, setActiveProjectIdState] = useState(DEFAULT_PROJECT_ID);
-  const [isSwitching, setIsSwitching] = useState(false);
+  return <>{children}</>;
+}
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && mockProjects.some((p) => p.id === stored)) {
-        setActiveProjectIdState(stored);
-      }
-    } catch {
-      /* localStorage unavailable */
-    }
-  }, []);
+function selectDb(state: ReturnType<typeof useAppStore.getState>): AppDatabase {
+  return {
+    version: state.version,
+    activeProjectId: state.activeProjectId,
+    projects: state.projects,
+    issuesByProject: state.issuesByProject,
+    notificationsByProject: state.notificationsByProject,
+    briefItemsByProject: state.briefItemsByProject,
+    settings: state.settings,
+  };
+}
 
-  const skipSwitchAnimation = useRef(true);
+export function useActiveProject(): ProjectContextValue {
+  const activeProjectId = useAppStore((s) => s.activeProjectId);
+  const projects = useAppStore((s) => s.projects);
+  const issuesByProject = useAppStore((s) => s.issuesByProject);
+  const notificationsByProject = useAppStore((s) => s.notificationsByProject);
+  const briefItemsByProject = useAppStore((s) => s.briefItemsByProject);
+  const settings = useAppStore((s) => s.settings);
+  const version = useAppStore((s) => s.version);
+  const setActiveProjectId = useAppStore((s) => s.setActiveProjectId);
+  const isSwitching = useAppStore((s) => s.isSwitching);
+  const isLoading = useAppStore((s) => s.async.isLoading);
 
-  const setActiveProjectId = useCallback((id: string) => {
-    if (!mockProjects.some((p) => p.id === id)) return;
-    setActiveProjectIdState(id);
-  }, []);
-
-  useEffect(() => {
-    if (skipSwitchAnimation.current) {
-      skipSwitchAnimation.current = false;
-      return;
-    }
-    setIsSwitching(true);
-    const timer = window.setTimeout(() => setIsSwitching(false), 280);
-    try {
-      localStorage.setItem(STORAGE_KEY, activeProjectId);
-    } catch {
-      /* ignore */
-    }
-    return () => window.clearTimeout(timer);
-  }, [activeProjectId]);
-
-  const activeProject = useMemo(
-    () => getProjectById(activeProjectId),
-    [activeProjectId],
-  );
-
-  const workspace = useMemo(
-    () => getProjectWorkspace(activeProjectId),
-    [activeProjectId],
-  );
-
-  const value = useMemo<ProjectContextValue>(
-    () => ({
+  const workspace = useMemo(() => {
+    const db: AppDatabase = {
+      version,
       activeProjectId,
-      activeProject,
-      workspace,
-      projects: mockProjects,
-      setActiveProjectId,
-      isSwitching,
-    }),
-    [activeProject, activeProjectId, isSwitching, setActiveProjectId, workspace],
-  );
+      projects,
+      issuesByProject,
+      notificationsByProject,
+      briefItemsByProject,
+      settings,
+    };
+    return getProjectWorkspaceFromDb(db, activeProjectId);
+  }, [
+    activeProjectId,
+    briefItemsByProject,
+    issuesByProject,
+    notificationsByProject,
+    projects,
+    settings,
+    version,
+  ]);
 
-  return (
-    <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>
-  );
+  return {
+    activeProjectId,
+    activeProject: workspace.project,
+    workspace,
+    projects,
+    setActiveProjectId,
+    isSwitching,
+    isLoading,
+  };
 }
 
-export function useActiveProject() {
-  const ctx = useContext(ProjectContext);
-  if (!ctx) {
-    throw new Error("useActiveProject must be used within ProjectProvider");
-  }
-  return ctx;
-}
-
-export function useProjectWorkspace() {
+export function useProjectWorkspace(): ProjectWorkspace {
   return useActiveProject().workspace;
 }

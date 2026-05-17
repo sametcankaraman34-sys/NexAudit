@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/topbar";
 import { LiveEventBridge } from "@/components/toast/live-event-bridge";
 import { ToastProvider } from "@/components/toast/toast-provider";
 import { ProjectProvider, useActiveProject } from "@/lib/project-context";
+import { StoreProvider } from "@/providers/store-provider";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -33,6 +34,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <ToastProvider>
+      <StoreProvider>
       <ProjectProvider>
         <LiveEventBridge />
         <div className="flex min-h-screen bg-[var(--bg)]">
@@ -60,6 +62,7 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </div>
       </ProjectProvider>
+      </StoreProvider>
     </ToastProvider>
   );
 }

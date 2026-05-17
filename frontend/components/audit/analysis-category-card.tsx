@@ -3,9 +3,14 @@ import type { AnalysisCategory } from "@/types/audit-intelligence";
 interface AnalysisCategoryCardProps {
   category: AnalysisCategory;
   animationDelay?: number;
+  barChartKey?: string;
 }
 
-export function AnalysisCategoryCard({ category, animationDelay = 0 }: AnalysisCategoryCardProps) {
+export function AnalysisCategoryCard({
+  category,
+  animationDelay = 0,
+  barChartKey,
+}: AnalysisCategoryCardProps) {
   const scoreColor =
     category.score >= 70
       ? "var(--success)"
@@ -27,7 +32,7 @@ export function AnalysisCategoryCard({ category, animationDelay = 0 }: AnalysisC
       <div className="mb-3 flex h-10 items-end gap-1">
         {category.barValues.map((v, i) => (
           <span
-            key={i}
+            key={`${barChartKey ?? category.id}-${i}-${v}`}
             className="audit-vbar-grow flex-1 rounded-sm bg-[var(--primary)]/30"
             style={
               {

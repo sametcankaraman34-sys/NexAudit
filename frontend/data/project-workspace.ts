@@ -20,7 +20,8 @@ import {
 } from "@/data/mock-brief";
 import { mockFeaturedIssues } from "@/data/mock-issues";
 import { mockNotifications } from "@/data/mock-notifications";
-import { mockProjects } from "@/data/mock-projects";
+import type { AppDatabase } from "@/types/app-database";
+import type { IntelligenceIssue } from "@/types/audit-intelligence";
 import {
   auditTimeline,
   evolutionMetrics,
@@ -54,9 +55,11 @@ import {
   websiteMetricFindings,
   websitePerformanceFactors,
 } from "@/data/mock-website-audit";
+import { recalculateProjectMetrics } from "@/services/project-metrics";
 import type {
   AuditPhase,
   AuditPhaseStatus,
+  BriefItem,
   DashboardStat,
   Issue,
   IssueDistribution,
@@ -159,12 +162,49 @@ function scaleScore(base: number, project: Project): number {
   return clampScore((base / BASELINE_SCORE) * project.overallScore);
 }
 
+function projectFingerprint(projectId: string, salt: number): number {
+  let hash = salt;
+  for (let i = 0; i < projectId.length; i++) {
+    hash = (hash * 31 + projectId.charCodeAt(i)) % 23;
+  }
+  return hash - 11;
+}
+
+function countBreakdownFromIssues(issues: Issue[]): {
+  breakdown: [number, number, number, number];
+  totalOpen: number;
+} {
+  const open = issues.filter((i) => i.status !== "resolved");
+  const breakdown: [number, number, number, number] = [0, 0, 0, 0];
+  for (const issue of open) {
+    if (issue.severity === "critical") breakdown[0]++;
+    else if (issue.severity === "high") breakdown[1]++;
+    else if (issue.severity === "medium") breakdown[2]++;
+    else breakdown[3]++;
+  }
+  return { breakdown, totalOpen: open.length };
+}
+
+function resolveDisplayProject(project: Project, issues: Issue[]): Project {
+  if (!issues.length) return project;
+  return recalculateProjectMetrics(project, issues);
+}
+
 function scaleCategories(categories: AnalysisCategory[], project: Project): AnalysisCategory[] {
-  return categories.map((cat) => ({
-    ...cat,
-    score: scaleScore(cat.score, project),
-    barValues: cat.barValues.map((v) => scaleScore(v, project)),
-  }));
+  return categories.map((cat, index) => {
+    const variation = projectFingerprint(project.id, index + 1);
+    const baseScore = scaleScore(cat.score, project);
+    const score = clampScore(baseScore + variation);
+    return {
+      ...cat,
+      score,
+      issueCount: Math.max(0, cat.issueCount + Math.floor(variation / 4)),
+      criticalCount: Math.max(0, cat.criticalCount + (variation > 5 ? 1 : 0)),
+      barValues: cat.barValues.map((v, barIndex) =>
+        clampScore(scaleScore(v, project) + projectFingerprint(project.id, index * 4 + barIndex)),
+      ),
+    };
+  });
 }
 
 function mapPhaseToAuditStatus(status: ProjectPhaseState["status"]): AuditPhaseStatus {
@@ -184,32 +224,52 @@ function buildAuditPhases(project: Project): AuditPhase[] {
   });
 }
 
-function buildDashboardStats(project: Project): DashboardStat[] {
-  const [c, h, m, l] = project.issueBreakdown;
-  const improvement = Math.max(0, project.totalIssues - (c + h + m + l));
-  const trendPrefix = project.scoreTrend >= 0 ? "+" : "";
+function buildDashboardStats(project: Project, issues: Issue[]): DashboardStat[] {
+  const display = resolveDisplayProject(project, issues);
+  const fromIssues = issues.length ? countBreakdownFromIssues(issues) : null;
+  const [c, h, m, l] = fromIssues?.breakdown ?? display.issueBreakdown;
+  const totalOpen = fromIssues?.totalOpen ?? display.totalIssues;
+  const improvement = Math.max(0, totalOpen - (c + h + m + l));
+  const trendPrefix = display.scoreTrend >= 0 ? "+" : "";
+  const opportunityValue = Math.max(4, Math.round(totalOpen * 0.48));
+  const opportunityBars =
+    display.scoreHistory.length >= 3
+      ? display.scoreHistory.slice(-5)
+      : [
+          Math.max(1, Math.round(opportunityValue * 0.55)),
+          Math.max(1, Math.round(opportunityValue * 0.68)),
+          Math.max(1, Math.round(opportunityValue * 0.8)),
+          Math.max(1, Math.round(opportunityValue * 0.92)),
+          opportunityValue,
+        ];
 
   return [
     {
       ...mockDashboardStats[0],
-      value: String(project.overallScore),
-      trend: `${trendPrefix}${project.scoreTrend}`,
-      trendDirection: project.scoreTrend >= 0 ? "up" : "down",
-      trendPositive: project.scoreTrend >= 0,
-      chart: { type: "sparkline", values: project.scoreHistory },
+      value: String(display.overallScore),
+      trend: `${trendPrefix}${display.scoreTrend}`,
+      trendDirection: display.scoreTrend >= 0 ? "up" : "down",
+      trendPositive: display.scoreTrend >= 0,
+      chart: { type: "sparkline", values: [...display.scoreHistory] },
     },
     {
       ...mockDashboardStats[1],
-      value: String(project.criticalIssues),
+      value: String(c),
+      trend: c > 8 ? `+${c - 5}` : `+${c}`,
+      trendDirection: "up",
+      trendPositive: false,
       chart: {
         type: "ring",
-        values: [project.criticalIssues],
-        max: Math.max(project.totalIssues, 1),
+        values: [c],
+        max: Math.max(totalOpen, 1),
       },
     },
     {
       ...mockDashboardStats[2],
-      value: String(project.totalIssues),
+      value: String(totalOpen),
+      trend: `+${Math.max(1, Math.round(totalOpen * 0.2))}`,
+      trendDirection: "up",
+      trendPositive: false,
       chart: {
         type: "stacked",
         values: [c, h, m, l, improvement],
@@ -217,14 +277,21 @@ function buildDashboardStats(project: Project): DashboardStat[] {
     },
     {
       ...mockDashboardStats[3],
-      value: String(Math.max(8, Math.round(project.totalIssues * 0.48))),
+      value: String(opportunityValue),
+      trend: `+${Math.max(1, Math.round(opportunityValue * 0.25))}`,
+      trendDirection: "up",
+      trendPositive: true,
+      chart: { type: "bars", values: opportunityBars },
     },
   ];
 }
 
-function buildIssueDistribution(project: Project): IssueDistribution[] {
-  const [c, h, m, l] = project.issueBreakdown;
-  const improvement = Math.max(0, project.totalIssues - (c + h + m + l));
+function buildIssueDistribution(project: Project, issues: Issue[]): IssueDistribution[] {
+  const display = resolveDisplayProject(project, issues);
+  const fromIssues = issues.length ? countBreakdownFromIssues(issues) : null;
+  const [c, h, m, l] = fromIssues?.breakdown ?? display.issueBreakdown;
+  const totalOpen = fromIssues?.totalOpen ?? display.totalIssues;
+  const improvement = Math.max(0, totalOpen - (c + h + m + l));
   return [
     { label: "Kritik", value: c },
     { label: "Yüksek", value: h },
@@ -250,34 +317,45 @@ function buildBrief(project: Project): ProjectBriefData {
   };
 }
 
-function buildBriefCompliance(project: Project): ProjectBriefComplianceData {
+function buildBriefCompliance(project: Project, briefItems: BriefItem[]): ProjectBriefComplianceData {
   const score = project.briefScore ?? 0;
   const prev = clampScore(score - Math.abs(project.scoreTrend));
+  const metCount = briefItems.filter((i) => i.status === "met").length;
+  const derivedScore =
+    briefItems.length > 0 ? Math.round((metCount / briefItems.length) * 100) : score;
 
   return {
     meta: {
       ...briefComplianceMeta,
       projectName: project.name,
       domain: project.domain,
-      overallScore: score,
+      overallScore: derivedScore,
       previousScore: prev,
-      trend: score - prev,
+      trend: derivedScore - prev,
       alignmentLabel:
-        score >= 80
+        derivedScore >= 80
           ? "Güçlü uyum — kritik sapmalar giderildiğinde 90+ hedeflenir"
-          : score >= 60
+          : derivedScore >= 60
             ? "Orta uyum — brief sapmaları önceliklendirilmeli"
-            : score > 0
+            : derivedScore > 0
               ? "Zayıf uyum — marka ve UX hizalaması gözden geçirilmeli"
               : "Brief analizi henüz başlamadı",
     },
-    metrics: briefComplianceMetrics.map((m) => ({
+    metrics: briefComplianceMetrics.map((m, index) => ({
       ...m,
-      score: m.id === "overall" ? score : scaleScore(m.score, project),
+      score:
+        m.id === "overall"
+          ? derivedScore
+          : clampScore(scaleScore(m.score, project) + projectFingerprint(project.id, index + 3)),
     })),
-    visualComparisons: visualComparisons.map((item) => ({
+    visualComparisons: visualComparisons.map((item, index) => ({
       ...item,
-      matchPercent: scaleScore(item.matchPercent, project),
+      matchPercent: clampScore(
+        scaleScore(item.matchPercent, project) + projectFingerprint(project.id, index + 9),
+      ),
+      barValues: item.barValues.map((v, barIndex) =>
+        clampScore(scaleScore(v, project) + projectFingerprint(project.id, index + barIndex + 20)),
+      ),
     })),
     deviations: briefDeviations,
     analytics: complianceAnalytics.map((item) => ({
@@ -419,41 +497,83 @@ function buildAdsAudit(project: Project) {
   };
 }
 
-const workspaceCache = new Map<string, ProjectWorkspace>();
-
-export function getProjectWorkspace(projectId: string): ProjectWorkspace {
-  const cached = workspaceCache.get(projectId);
-  if (cached) return cached;
-
-  const project = mockProjects.find((p) => p.id === projectId) ?? mockProjects[0];
-  const workspace: ProjectWorkspace = {
-    project,
-    dashboard: {
-      stats: buildDashboardStats(project),
-      auditPhases: buildAuditPhases(project),
-      issueDistribution: buildIssueDistribution(project),
-      recommendations: mockRecommendations,
-      featuredIssues: mockFeaturedIssues.map((issue) => ({
-        ...issue,
-        id: `${project.id}-${issue.id}`,
-        location: personalizeText(issue.location, project),
-      })),
-    },
-    brief: buildBrief(project),
-    briefCompliance: buildBriefCompliance(project),
-    notifications: buildNotifications(project),
-    reportHistory: buildReportHistory(project),
-    websiteAudit: buildWebsiteAudit(project),
-    seoAudit: buildSeoAudit(project),
-    adsAudit: buildAdsAudit(project),
+function issuesToIntelligence(issues: Issue[]): IntelligenceIssue[] {
+  const impactBySeverity: Record<Issue["severity"], string> = {
+    critical: "Arama görünürlüğü ve dönüşümde yüksek risk",
+    high: "Performans ve SEO skorunu düşürüyor",
+    medium: "Kullanıcı deneyimini etkiliyor",
+    low: "İyileştirme fırsatı",
+    improvement: "Optimizasyon potansiyeli",
   };
-
-  workspaceCache.set(projectId, workspace);
-  return workspace;
+  return issues.map((issue) => ({
+    id: issue.id,
+    title: issue.title,
+    location: issue.location,
+    severity: issue.severity,
+    status: issue.status,
+    impact: impactBySeverity[issue.severity],
+    optimizationPotential:
+      issue.severity === "critical" ? 18 : issue.severity === "high" ? 12 : 8,
+    fixHint: issue.status === "resolved" ? "Çözüldü" : "Düzeltme rehberine bakın",
+  }));
 }
 
-export function getProjectById(projectId: string): Project {
-  return mockProjects.find((p) => p.id === projectId) ?? mockProjects[0];
+export function buildProjectWorkspace(
+  project: Project,
+  live?: { issues?: Issue[]; notifications?: Notification[]; briefItems?: BriefItem[] },
+): ProjectWorkspace {
+  const issues = live?.issues ?? [];
+  const briefItems = live?.briefItems ?? [];
+  const notifications = live?.notifications ?? buildNotifications(project);
+  const featuredIssues = (issues.length ? issues : mockFeaturedIssues).slice(0, 8);
+  const displayProject = resolveDisplayProject(project, issues);
+
+  const websiteAuditBase = buildWebsiteAudit(displayProject);
+  const intelligenceFromStore = issuesToIntelligence(issues);
+
+  return {
+    project: displayProject,
+    dashboard: {
+      stats: buildDashboardStats(project, issues),
+      auditPhases: buildAuditPhases(displayProject),
+      issueDistribution: buildIssueDistribution(project, issues),
+      recommendations: mockRecommendations,
+      featuredIssues,
+    },
+    brief: buildBrief(displayProject),
+    briefCompliance: buildBriefCompliance(displayProject, briefItems),
+    notifications,
+    reportHistory: buildReportHistory(displayProject),
+    websiteAudit: {
+      ...websiteAuditBase,
+      intelligenceSummary: {
+        ...websiteAuditBase.intelligenceSummary,
+        overallScore: scaleScore(websiteAuditBase.intelligenceSummary.overallScore, displayProject),
+      },
+      issues:
+        intelligenceFromStore.length > 0
+          ? intelligenceFromStore
+          : websiteAuditBase.issues,
+    },
+    seoAudit: buildSeoAudit(displayProject),
+    adsAudit: buildAdsAudit(displayProject),
+  };
+}
+
+export function getProjectWorkspaceFromDb(db: AppDatabase, projectId: string): ProjectWorkspace {
+  const project = db.projects.find((p) => p.id === projectId) ?? db.projects[0];
+  if (!project) {
+    throw new Error("Proje bulunamadı");
+  }
+  return buildProjectWorkspace(project, {
+    issues: db.issuesByProject[projectId] ?? [],
+    notifications: db.notificationsByProject[projectId] ?? [],
+    briefItems: db.briefItemsByProject[projectId] ?? [],
+  });
+}
+
+export function getProjectByIdFromDb(db: AppDatabase, projectId: string): Project {
+  return db.projects.find((p) => p.id === projectId) ?? db.projects[0];
 }
 
 export const DEFAULT_PROJECT_ID = "proj-1";

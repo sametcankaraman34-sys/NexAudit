@@ -26,9 +26,10 @@ interface StatCardProps {
   stat: DashboardStat;
   animationIndex?: number;
   compact?: boolean;
+  chartRemountKey?: string;
 }
 
-export function StatCard({ stat, animationIndex = 0, compact }: StatCardProps) {
+export function StatCard({ stat, animationIndex = 0, compact, chartRemountKey }: StatCardProps) {
   const chartDelay = animationIndex * 100 + 180;
   const Icon = iconMap[stat.icon as keyof typeof iconMap] ?? BarChart3;
   const iconAccent = accentMap[stat.accent];
@@ -106,7 +107,11 @@ export function StatCard({ stat, animationIndex = 0, compact }: StatCardProps) {
 
         {hasSideChart && (
           <div className="mt-3 shrink-0 sm:mt-0">
-            <StatCardInfographic stat={stat} delay={chartDelay} />
+            <StatCardInfographic
+              key={chartRemountKey ?? stat.id}
+              stat={stat}
+              delay={chartDelay}
+            />
           </div>
         )}
       </div>
@@ -118,7 +123,11 @@ export function StatCard({ stat, animationIndex = 0, compact }: StatCardProps) {
             compact ? "mt-2.5 pt-2.5" : "mt-4 pt-4",
           )}
         >
-          <StatCardInfographic stat={stat} delay={chartDelay} />
+          <StatCardInfographic
+            key={chartRemountKey ?? stat.id}
+            stat={stat}
+            delay={chartDelay}
+          />
         </div>
       )}
     </article>

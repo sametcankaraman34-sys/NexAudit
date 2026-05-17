@@ -1,9 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { useMemo } from "react";
 import { ProjectWorkspaceCard } from "@/components/cards/project-workspace-card";
 import { PageHeader } from "@/components/layout/page-header";
-import { mockProjects, projectsSummary } from "@/data/mock-projects";
+import { useAppStore } from "@/stores/app-store";
 
 export function ProjectsView() {
+  const projects = useAppStore((s) => s.projects);
+
+  const summary = useMemo(
+    () => ({
+      total: projects.length,
+      active: projects.filter((p) => p.status === "active").length,
+      inProgress: projects.filter((p) =>
+        p.phases.some((ph) => ph.status === "in_progress"),
+      ).length,
+      highRisk: projects.filter((p) => p.riskLevel === "high").length,
+    }),
+    [projects],
+  );
+
   return (
     <>
       <PageHeader
@@ -13,10 +30,10 @@ export function ProjectsView() {
 
       <section className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <ul className="flex flex-wrap gap-2">
-          <SummaryPill label="Toplam proje" value={projectsSummary.total} />
-          <SummaryPill label="Aktif" value={projectsSummary.active} accent="primary" />
-          <SummaryPill label="Denetimde" value={projectsSummary.inProgress} accent="warning" />
-          <SummaryPill label="Yüksek risk" value={projectsSummary.highRisk} accent="danger" />
+          <SummaryPill label="Toplam proje" value={summary.total} />
+          <SummaryPill label="Aktif" value={summary.active} accent="primary" />
+          <SummaryPill label="Denetimde" value={summary.inProgress} accent="warning" />
+          <SummaryPill label="Yüksek risk" value={summary.highRisk} accent="danger" />
         </ul>
         <Link
           href="/new-project"
@@ -27,7 +44,7 @@ export function ProjectsView() {
       </section>
 
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3 lg:gap-4">
-        {mockProjects.map((project, index) => (
+        {projects.map((project, index) => (
           <li key={project.id} className="list-none">
             <ProjectWorkspaceCard project={project} animationIndex={index} />
           </li>

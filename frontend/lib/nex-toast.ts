@@ -17,6 +17,9 @@ export function toast(input: ToastInput): string | undefined {
 }
 
 export const NexToast = {
+  success(title: string, description?: string) {
+    return toast({ variant: "success", title, description });
+  },
   projectCreated(projectName: string) {
     return toast({
       variant: "success",

@@ -2,11 +2,12 @@
 
 import { ArrowUpRight, FileCheck, TrendingUp } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { useProjectWorkspace } from "@/lib/project-context";
+import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 import { cn } from "@/lib/utils";
 import { ComplianceBar, MiniScoreRing } from "./mini-score-ring";
 
 export function BriefMultiScoreHero() {
+  const { activeProjectId } = useActiveProject();
   const { briefCompliance } = useProjectWorkspace();
   const { meta, metrics: briefComplianceMetrics } = briefCompliance;
   const overall = briefComplianceMetrics.find((m) => m.id === "overall")!;
@@ -58,7 +59,7 @@ export function BriefMultiScoreHero() {
           </div>
 
           <div className="flex shrink-0 flex-col items-end gap-3 self-end">
-            <MiniScoreRing score={overall.score} size="lg" />
+            <MiniScoreRing key={`${activeProjectId}-overall`} score={overall.score} size="lg" />
             <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--success)]">
               <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
               +{overall.trend} puan · önceki dönem
@@ -74,7 +75,11 @@ export function BriefMultiScoreHero() {
               style={{ animationDelay: `${80 + index * 45}ms` }}
             >
               <div className="flex items-center gap-2.5">
-                <MiniScoreRing score={metric.score} size="sm" />
+                <MiniScoreRing
+                  key={`${activeProjectId}-${metric.id}`}
+                  score={metric.score}
+                  size="sm"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-[var(--text-secondary)]">
                     {metric.label}
@@ -92,7 +97,12 @@ export function BriefMultiScoreHero() {
                   )}
                 </div>
               </div>
-              <ComplianceBar value={metric.score} className="mt-2.5" delayMs={120 + index * 40} />
+              <ComplianceBar
+                key={`${activeProjectId}-${metric.id}-bar`}
+                value={metric.score}
+                className="mt-2.5"
+                delayMs={120 + index * 40}
+              />
             </li>
           ))}
         </ul>
