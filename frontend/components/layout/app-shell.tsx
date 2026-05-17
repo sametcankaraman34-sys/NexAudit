@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { LiveEventBridge } from "@/components/toast/live-event-bridge";
+import { ToastProvider } from "@/components/toast/toast-provider";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -13,7 +15,9 @@ export function AppShell({ children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-[var(--bg)]">
+    <ToastProvider>
+      <LiveEventBridge />
+      <div className="flex min-h-screen bg-[var(--bg)]">
       <div className="hidden shrink-0 lg:block">
         <Sidebar />
       </div>
@@ -39,5 +43,6 @@ export function AppShell({ children }: AppShellProps) {
         </main>
       </div>
     </div>
+    </ToastProvider>
   );
 }

@@ -92,13 +92,23 @@ export interface BriefItem {
   detail?: string;
 }
 
+export type NotificationCategory =
+  | "critical"
+  | "audit"
+  | "seo"
+  | "brief"
+  | "system";
+
 export interface Notification {
   id: string;
   title: string;
   message: string;
   time: string;
   read: boolean;
-  type: "audit" | "issue" | "system";
+  category: NotificationCategory;
+  severity: IssueSeverity;
+  actionHref: string;
+  actionLabel: string;
 }
 
 export interface IssueDistribution {

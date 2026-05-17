@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Bell,
   ClipboardCheck,
   FileText,
   FolderKanban,
@@ -56,7 +55,6 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "DİĞER",
     items: [
-      { label: "Bildirimler", href: "/notifications", icon: Bell },
       { label: "Rapor Geçmişi", href: "/report-history", icon: FileText },
       { label: "Ayarlar", href: "/settings", icon: Settings },
     ],
@@ -68,8 +66,6 @@ export const DEMO_USER = {
   email: "demo@nexaudit.app",
   initials: "AD",
 };
-
-export const UNREAD_NOTIFICATION_COUNT = 3;
 
 export const ACTIVE_PROJECT = {
   id: "proj-1",

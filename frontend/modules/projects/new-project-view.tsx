@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Radar } from "lucide-react";
+import { NexToast } from "@/lib/nex-toast";
 import { AuditOnboardingPanel } from "@/components/projects/audit-onboarding-panel";
 import { PageHeader } from "@/components/layout/page-header";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,16 @@ const inputClassName = cn(
 );
 
 export function NewProjectView() {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const name =
+      (form.elements.namedItem("name") as HTMLInputElement | null)?.value?.trim() ||
+      "Yeni proje";
+    NexToast.projectCreated(name);
+    NexToast.auditStarted("Web Tasarım Denetimi", "/website-audit", name);
+  };
+
   return (
     <>
       <div className="new-project-header">
@@ -78,7 +89,7 @@ export function NewProjectView() {
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <FormField id="name" label="Proje Adı" hint="Ekip içinde tanınacak isim" style={{ animationDelay: "260ms" }}>
               <Input
                 id="name"

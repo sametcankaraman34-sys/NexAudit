@@ -1,8 +1,9 @@
 "use client";
 
-import { Bell, Building2, Menu, Plus, Search } from "lucide-react";
+import { Building2, Menu, Plus, Search } from "lucide-react";
 import Link from "next/link";
-import { ACTIVE_PROJECT, UNREAD_NOTIFICATION_COUNT } from "@/constants/navigation";
+import { NotificationBell } from "@/components/notifications/notification-center";
+import { ACTIVE_PROJECT } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
@@ -45,18 +46,7 @@ export function Topbar({ onMenuClick, showMenuButton = false }: TopbarProps) {
       </div>
 
       <div className="ml-auto flex items-center gap-3">
-        <Link
-          href="/notifications"
-          className="btn-transition relative flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-soft)]"
-          aria-label="Bildirimler"
-        >
-          <Bell className="h-[18px] w-[18px]" />
-          {UNREAD_NOTIFICATION_COUNT > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--danger)] px-1 text-[10px] font-semibold text-white">
-              {UNREAD_NOTIFICATION_COUNT}
-            </span>
-          )}
-        </Link>
+        <NotificationBell />
 
         <Link
           href="/new-project"

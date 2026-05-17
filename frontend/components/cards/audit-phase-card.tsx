@@ -1,7 +1,10 @@
+"use client";
+
 import { Lock, Monitor, Megaphone, Search, Trophy } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/feedback/progress-bar";
+import { NexToast } from "@/lib/nex-toast";
 import { cn } from "@/lib/utils";
 import type { AuditPhase } from "@/types";
 
@@ -15,7 +18,7 @@ const phaseLinks = {
   website: "/website-audit",
   seo: "/seo-audit",
   ads: "/ads-audit",
-};
+} as const;
 
 interface AuditPhaseCardProps {
   phase: AuditPhase;
@@ -27,6 +30,12 @@ export function AuditPhaseCard({ phase, showConnector, compact }: AuditPhaseCard
   const Icon = phaseIcons[phase.id];
   const isLocked = phase.status === "locked";
   const isCompleted = phase.status === "completed";
+  const href = phaseLinks[phase.id];
+
+  const handlePhaseAction = () => {
+    if (isLocked || isCompleted) return;
+    NexToast.auditStarted(phase.title, href);
+  };
 
   return (
     <div className="relative flex min-w-0 flex-col">
@@ -110,7 +119,8 @@ export function AuditPhaseCard({ phase, showConnector, compact }: AuditPhaseCard
           </Button>
         ) : (
           <Link
-            href={phaseLinks[phase.id]}
+            href={href}
+            onClick={handlePhaseAction}
             className={cn(
               "btn-transition inline-flex w-full items-center justify-center rounded-lg bg-[var(--primary)] font-medium text-white hover:bg-[var(--primary-hover)]",
               compact ? "h-8 text-xs" : "h-9 rounded-xl text-xs",

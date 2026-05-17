@@ -1,5 +1,5 @@
-import { NotificationsView } from "@/modules/notifications/notifications-view";
+import { redirect } from "next/navigation";
 
 export default function NotificationsPage() {
-  return <NotificationsView />;
+  redirect("/");
 }

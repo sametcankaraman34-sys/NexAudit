@@ -1,0 +1,85 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { NexToast, toast } from "@/lib/nex-toast";
+
+function sessionKey(route: string, event: string) {
+  return `nex-live-${route}-${event}`;
+}
+
+function hasSeen(route: string, event: string) {
+  if (typeof sessionStorage === "undefined") return false;
+  return sessionStorage.getItem(sessionKey(route, event)) === "1";
+}
+
+function markSeen(route: string, event: string) {
+  sessionStorage.setItem(sessionKey(route, event), "1");
+}
+
+function scheduleEvent(
+  timers: ReturnType<typeof setTimeout>[],
+  route: string,
+  event: string,
+  delayMs: number,
+  fn: () => void,
+) {
+  if (hasSeen(route, event)) return;
+  const id = setTimeout(() => {
+    fn();
+    markSeen(route, event);
+  }, delayMs);
+  timers.push(id);
+}
+
+/** Route-based live events — once per session per route */
+export function LiveEventBridge() {
+  const pathname = usePathname();
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    const timers = timersRef.current;
+
+    if (pathname === "/") {
+      scheduleEvent(timers, "/", "scan-active", 2800, () =>
+        NexToast.scanStarted("Ajans Demo Projesi"),
+      );
+    }
+
+    if (pathname === "/website-audit") {
+      scheduleEvent(timers, pathname, "audit-complete", 1600, () =>
+        toast({
+          variant: "success",
+          title: "Denetim tamamlandı",
+          description: "Web Tasarım Denetimi bitti · skor 68/100",
+          action: { label: "Sonuçları gör", href: "/website-audit" },
+        }),
+      );
+      scheduleEvent(timers, pathname, "critical-meta", 4200, () =>
+        NexToast.criticalIssue("Anasayfada meta description eksik."),
+      );
+    }
+
+    if (pathname === "/seo-audit") {
+      scheduleEvent(timers, pathname, "seo-unlock", 1200, () => NexToast.seoUnlocked());
+    }
+
+    if (pathname === "/brief") {
+      scheduleEvent(timers, pathname, "brief-score", 1400, () => NexToast.briefScoreUpdated(82));
+    }
+
+    if (pathname === "/ads-audit") {
+      scheduleEvent(timers, pathname, "conversion", 1800, () =>
+        NexToast.conversionIssue("Landing CTA görünürlüğü mobilde düşük."),
+      );
+    }
+
+    return () => {
+      timers.forEach(clearTimeout);
+    };
+  }, [pathname]);
+
+  return null;
+}
