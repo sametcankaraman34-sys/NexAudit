@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname);
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -11,10 +10,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "@base-ui/react"],
     webpackMemoryOptimizations: true,
-  },
-  onDemandEntries: {
-    maxInactiveAge: 60 * 1000,
-    pagesBufferLength: 2,
   },
 };
 

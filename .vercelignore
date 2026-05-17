@@ -1,0 +1,6 @@
+backend/
+database/
+shared/
+.git/
+*.md
+!frontend/README.md
