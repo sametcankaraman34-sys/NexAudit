@@ -1,4 +1,5 @@
 import type { BriefItem, Issue, Notification, Project } from "@/types";
+import type { ActivityEvent, ProjectWorkflowMap } from "@/types/workflow";
 
 export interface IntegrationRecord {
   id: string;
@@ -15,7 +16,7 @@ export interface TeamMemberRecord {
   initials: string;
 }
 
-export const APP_DB_VERSION = 1;
+export const APP_DB_VERSION = 2;
 export const STORAGE_KEY = "nexaudit-app-db";
 
 export interface NotificationPreferences {
@@ -64,6 +65,8 @@ export interface AppDatabase {
   issuesByProject: Record<string, Issue[]>;
   notificationsByProject: Record<string, Notification[]>;
   briefItemsByProject: Record<string, BriefItem[]>;
+  workflowByProject: Record<string, ProjectWorkflowMap>;
+  activityByProject: Record<string, ActivityEvent[]>;
   settings: AppSettings;
 }
 

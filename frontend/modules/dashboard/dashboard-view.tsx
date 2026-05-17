@@ -8,11 +8,14 @@ import { StatCard } from "@/components/cards/stat-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { IssueList } from "@/components/tables/issue-list";
 import { DEMO_USER } from "@/constants/navigation";
+import { ActivityTimeline } from "@/components/workflow/activity-timeline";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
+import { useAppStore } from "@/stores/app-store";
 
 export function DashboardView() {
   const { activeProjectId } = useActiveProject();
   const { dashboard } = useProjectWorkspace();
+  const activities = useAppStore((s) => s.activityByProject[activeProjectId] ?? []);
   const distributionKey = dashboard.issueDistribution.map((d) => d.value).join("-");
 
   return (
@@ -55,6 +58,8 @@ export function DashboardView() {
               <AuditFinalCard compact allPhases={dashboard.auditPhases} />
             </div>
           </section>
+
+          <ActivityTimeline events={activities} className="md:col-span-2" maxItems={8} />
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <IssueList issues={dashboard.featuredIssues} compact />

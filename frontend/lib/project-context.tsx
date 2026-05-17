@@ -28,6 +28,8 @@ function selectDb(state: ReturnType<typeof useAppStore.getState>): AppDatabase {
     issuesByProject: state.issuesByProject,
     notificationsByProject: state.notificationsByProject,
     briefItemsByProject: state.briefItemsByProject,
+    workflowByProject: state.workflowByProject,
+    activityByProject: state.activityByProject,
     settings: state.settings,
   };
 }
@@ -38,6 +40,8 @@ export function useActiveProject(): ProjectContextValue {
   const issuesByProject = useAppStore((s) => s.issuesByProject);
   const notificationsByProject = useAppStore((s) => s.notificationsByProject);
   const briefItemsByProject = useAppStore((s) => s.briefItemsByProject);
+  const workflowByProject = useAppStore((s) => s.workflowByProject);
+  const activityByProject = useAppStore((s) => s.activityByProject);
   const settings = useAppStore((s) => s.settings);
   const version = useAppStore((s) => s.version);
   const setActiveProjectId = useAppStore((s) => s.setActiveProjectId);
@@ -52,17 +56,21 @@ export function useActiveProject(): ProjectContextValue {
       issuesByProject,
       notificationsByProject,
       briefItemsByProject,
+      workflowByProject,
+      activityByProject,
       settings,
     };
     return getProjectWorkspaceFromDb(db, activeProjectId);
   }, [
     activeProjectId,
+    activityByProject,
     briefItemsByProject,
     issuesByProject,
     notificationsByProject,
     projects,
     settings,
     version,
+    workflowByProject,
   ]);
 
   return {

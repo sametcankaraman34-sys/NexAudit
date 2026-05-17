@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ProgressBar } from "@/components/feedback/progress-bar";
 import { NexToast } from "@/lib/nex-toast";
 import { getAuditFinalMessage, getPhaseCardCopy } from "@/lib/phase-copy";
-import { useAppStore } from "@/stores/app-store";
 import { cn } from "@/lib/utils";
 import type { AuditPhase } from "@/types";
 
@@ -30,13 +29,10 @@ export function AuditPhaseCard({
 }: AuditPhaseCardProps) {
   const phases = allPhases ?? [phase];
   const copy = getPhaseCardCopy(phase, phases);
-  const activeProjectId = useAppStore((s) => s.activeProjectId);
-  const completePhase = useAppStore((s) => s.completePhase);
   const Icon = phaseIcons[phase.id];
   const isLocked = phase.status === "locked";
   const isCompleted = phase.status === "completed";
   const isActive = phase.status === "active";
-  const canComplete = isActive && phase.progress >= 65;
 
   const handlePhaseAction = () => {
     if (copy.ctaDisabled) return;
@@ -133,19 +129,6 @@ export function AuditPhaseCard({
             animated={!isLocked}
           />
         </div>
-
-        {canComplete && (
-          <button
-            type="button"
-            onClick={() => void completePhase(activeProjectId, phase.id)}
-            className={cn(
-              "phase-cta-outline outcome-stage-complete-btn mb-2 inline-flex w-full items-center justify-center rounded-lg border border-[var(--primary)]/25 bg-[var(--primary-soft)]/40 text-xs font-medium text-[var(--primary)]",
-              compact ? "h-7" : "h-8",
-            )}
-          >
-            Aşamayı tamamla ✨
-          </button>
-        )}
 
         {copy.ctaDisabled ? (
           <button

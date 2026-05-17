@@ -8,6 +8,7 @@ import { IntelligenceHero } from "@/components/audit/intelligence-hero";
 import { IntelligenceIssueQueue } from "@/components/audit/intelligence-issue-queue";
 import { IntelligenceMetricGrid } from "@/components/audit/intelligence-metric-grid";
 import { IntelligencePerformancePanel } from "@/components/audit/intelligence-performance-panel";
+import { AuditWorkflowPanel } from "@/components/workflow/audit-workflow-panel";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function WebsiteAuditView() {
@@ -16,6 +17,8 @@ export function WebsiteAuditView() {
 
   return (
     <div className="audit-page space-y-6 lg:space-y-8">
+      <AuditWorkflowPanel projectId={activeProjectId} phaseId="website" />
+
       <IntelligenceHero
         key={activeProjectId}
         summary={websiteAudit.intelligenceSummary}

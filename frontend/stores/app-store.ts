@@ -5,9 +5,21 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { createInitialDatabase, DEFAULT_PROJECT_ID } from "@/mock-data/seed";
 import { withMockApi } from "@/services/mock-api";
 import { OutcomeFeedback } from "@/lib/outcome-feedback";
+import {
+  buildPhaseUnlockedNotification,
+  buildTeamHandoffNotification,
+} from "@/lib/workflow-notify";
+import { createProjectWorkflow } from "@/services/workflow-factory";
 import { completeProjectPhase } from "@/services/phase-completion";
 import { recalculateProjectMetrics } from "@/services/project-metrics";
+import { runPhaseScan } from "@/stores/scan-runner";
+import {
+  buildActivityEntry,
+  patchPhaseWorkflow,
+  prependActivity,
+} from "@/stores/workflow-helpers";
 import type { AuditPhaseId } from "@/types";
+import { APP_DB_VERSION } from "@/types/app-database";
 import type {
   AppDatabase,
   AppSettings,
@@ -16,7 +28,7 @@ import type {
 } from "@/types/app-database";
 import type { BriefItem, BriefItemStatus, Issue, IssueStatus, Notification, Project } from "@/types";
 
-interface AppStore extends AppDatabase {
+export interface AppStore extends AppDatabase {
   hydrated: boolean;
   async: AsyncState;
   isSwitching: boolean;
@@ -26,7 +38,15 @@ interface AppStore extends AppDatabase {
   updateProject: (id: string, patch: Partial<Project>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   archiveProject: (id: string) => Promise<void>;
-  completePhase: (projectId: string, phaseId: AuditPhaseId) => Promise<void>;
+  startPhaseScan: (projectId: string, phaseId: AuditPhaseId) => Promise<void>;
+  completePhase: (
+    projectId: string,
+    phaseId: AuditPhaseId,
+    options?: { force?: boolean },
+  ) => Promise<boolean>;
+  reopenPhase: (projectId: string, phaseId: AuditPhaseId) => Promise<void>;
+  savePhaseDraft: (projectId: string, phaseId: AuditPhaseId) => Promise<void>;
+  markPhaseReviewed: (projectId: string, phaseId: AuditPhaseId) => void;
   updateIssueStatus: (
     projectId: string,
     issueId: string,
@@ -146,6 +166,16 @@ export const useAppStore = create<AppStore>()(
               ...state.briefItemsByProject,
               [id]: [],
             },
+            workflowByProject: {
+              ...state.workflowByProject,
+              [id]: createProjectWorkflow(project.phases),
+            },
+            activityByProject: {
+              ...state.activityByProject,
+              [id]: [
+                buildActivityEntry("scan.started", "Proje oluşturuldu · ilk tur hazır", "website"),
+              ],
+            },
             activeProjectId: id,
             async: { isLoading: false, lastAction: "createProject" },
           }));
@@ -212,40 +242,111 @@ export const useAppStore = create<AppStore>()(
         OutcomeFeedback.projectCancelled(id, project.name);
       },
 
-      completePhase: async (projectId, phaseId) => {
+      startPhaseScan: async (projectId, phaseId) => {
+        set({ async: { isLoading: true, lastAction: "startPhaseScan" } });
+        try {
+          await runPhaseScan(get, set, projectId, phaseId);
+        } catch {
+          set((state) => ({
+            workflowByProject: {
+              ...state.workflowByProject,
+              [projectId]: patchPhaseWorkflow(
+                state.workflowByProject[projectId] ?? {},
+                phaseId,
+                {
+                  scan: {
+                    status: "error",
+                    progress: 0,
+                    currentStep: null,
+                    lastError: "Tarama sırasında bir sorun oluştu.",
+                  },
+                },
+              ),
+            },
+          }));
+        } finally {
+          set({ async: { isLoading: false, lastAction: "startPhaseScan" } });
+        }
+      },
+
+      completePhase: async (projectId, phaseId, options) => {
         const project = get().projects.find((p) => p.id === projectId);
-        if (!project) return;
+        if (!project) return false;
         const current = project.phases.find((p) => p.id === phaseId);
-        if (!current || current.status === "completed") return;
+        if (!current || current.status === "completed") return false;
+
+        const wf = get().workflowByProject[projectId]?.[phaseId];
+        if (!options?.force && wf?.scan.status !== "completed") {
+          return false;
+        }
 
         set({ async: { isLoading: true, lastAction: "completePhase" } });
+        let ok = false;
         await withMockApi(
           () => {
             const { phases, unlockedPhaseId, allCompleted } = completeProjectPhase(
               project.phases,
               phaseId,
             );
+            const phaseLabel =
+              phaseId === "website" ? "Web Tasarım" : phaseId === "seo" ? "SEO" : "Reklam";
             const updated: Project = {
               ...project,
               phases,
-              lastActivity:
-                phaseId === "website"
-                  ? "Web tasarım denetimi tamamlandı"
-                  : phaseId === "seo"
-                    ? "SEO optimizasyonu tamamlandı"
-                    : "Reklam & dönüşüm denetimi tamamlandı",
+              lastActivity: `${phaseLabel} onaylandı`,
               updatedAt: new Date().toISOString().slice(0, 10),
             };
-            set((state) => ({
-              ...syncProjectInState(state, projectId, updated),
-              async: { isLoading: false, lastAction: "completePhase" },
-            }));
+
+            set((state) => {
+              let activities = prependActivity(
+                state.activityByProject[projectId] ?? [],
+                buildActivityEntry("phase.completed", `${phaseLabel} tamamlandı`, phaseId),
+              );
+              const notifications = [...(state.notificationsByProject[projectId] ?? [])];
+              let workflow = patchPhaseWorkflow(state.workflowByProject[projectId] ?? {}, phaseId, {
+                operationalStatus: "approved",
+                humanReviewed: true,
+              });
+
+              if (unlockedPhaseId) {
+                const unlockNote = buildPhaseUnlockedNotification(project.name, unlockedPhaseId);
+                notifications.unshift(unlockNote);
+                notifications.unshift(
+                  buildTeamHandoffNotification(project.name, phaseId, unlockedPhaseId),
+                );
+                activities = prependActivity(
+                  activities,
+                  buildActivityEntry(
+                    "notification.sent",
+                    `${phaseLabel} tamamlandı · ${unlockedPhaseId === "seo" ? "SEO" : "Reklam"} ekibine bildirim`,
+                    unlockedPhaseId,
+                  ),
+                );
+                activities = prependActivity(
+                  activities,
+                  buildActivityEntry("phase.unlocked", "Sonraki aşama kilidi açıldı", unlockedPhaseId),
+                );
+                workflow = patchPhaseWorkflow(workflow, unlockedPhaseId, {
+                  assignedRoleId: unlockedPhaseId === "seo" ? "seo" : "ads",
+                });
+              }
+
+              return {
+                ...syncProjectInState(state, projectId, updated),
+                workflowByProject: { ...state.workflowByProject, [projectId]: workflow },
+                activityByProject: { ...state.activityByProject, [projectId]: activities },
+                notificationsByProject: {
+                  ...state.notificationsByProject,
+                  [projectId]: notifications,
+                },
+                async: { isLoading: false, lastAction: "completePhase" },
+              };
+            });
 
             OutcomeFeedback.stageCompleted(projectId, project.name, phaseId);
             if (unlockedPhaseId) {
               window.setTimeout(
-                () =>
-                  OutcomeFeedback.stageUnlocked(projectId, project.name, unlockedPhaseId),
+                () => OutcomeFeedback.stageUnlocked(projectId, project.name, unlockedPhaseId),
                 480,
               );
             }
@@ -255,9 +356,83 @@ export const useAppStore = create<AppStore>()(
                 unlockedPhaseId ? 1100 : 520,
               );
             }
+            ok = true;
           },
           { delayMs: 360 },
         );
+        return ok;
+      },
+
+      reopenPhase: async (projectId, phaseId) => {
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return;
+        await withMockApi(() => {
+          const phases = project.phases.map((p) =>
+            p.id === phaseId ? { ...p, status: "in_progress" as const, progress: Math.min(p.progress, 85) } : p,
+          );
+          set((state) => ({
+            ...syncProjectInState(state, projectId, {
+              ...project,
+              phases,
+              lastActivity: "Aşama yeniden açıldı · ek inceleme gerekli",
+            }),
+            workflowByProject: {
+              ...state.workflowByProject,
+              [projectId]: patchPhaseWorkflow(state.workflowByProject[projectId] ?? {}, phaseId, {
+                operationalStatus: "reopened",
+                humanReviewed: false,
+                scan: { status: "idle", progress: 0, currentStep: null },
+              }),
+            },
+            activityByProject: {
+              ...state.activityByProject,
+              [projectId]: prependActivity(
+                state.activityByProject[projectId] ?? [],
+                buildActivityEntry("phase.reopened", "Aşama yeniden açıldı", phaseId),
+              ),
+            },
+          }));
+        }, { delayMs: 240 });
+      },
+
+      savePhaseDraft: async (projectId, phaseId) => {
+        await withMockApi(() => {
+          set((state) => ({
+            workflowByProject: {
+              ...state.workflowByProject,
+              [projectId]: patchPhaseWorkflow(state.workflowByProject[projectId] ?? {}, phaseId, {
+                operationalStatus: "draft",
+                draftSavedAt: new Date().toISOString(),
+              }),
+            },
+            activityByProject: {
+              ...state.activityByProject,
+              [projectId]: prependActivity(
+                state.activityByProject[projectId] ?? [],
+                buildActivityEntry("phase.draft_saved", "Taslak olarak kaydedildi", phaseId),
+              ),
+            },
+          }));
+        }, { delayMs: 200 });
+      },
+
+      markPhaseReviewed: (projectId, phaseId) => {
+        set((state) => ({
+          workflowByProject: {
+            ...state.workflowByProject,
+            [projectId]: patchPhaseWorkflow(state.workflowByProject[projectId] ?? {}, phaseId, {
+              humanReviewed: true,
+              operationalStatus: "in_review",
+            }),
+          },
+          activityByProject: {
+            ...state.activityByProject,
+            [projectId]: prependActivity(
+              state.activityByProject[projectId] ?? [],
+              buildActivityEntry("review.required", "Sonuçlar incelendi", phaseId),
+            ),
+          },
+        }));
       },
 
       updateIssueStatus: async (projectId, issueId, status) => {
@@ -273,27 +448,7 @@ export const useAppStore = create<AppStore>()(
               const updated = recalculateProjectMetrics(project, issues);
               const websitePhase = updated.phases.find((p) => p.id === "website");
               if (websitePhase && status === "resolved") {
-                websitePhase.progress = Math.min(100, websitePhase.progress + 6);
-                if (
-                  websitePhase.progress >= 100 &&
-                  websitePhase.status !== "completed"
-                ) {
-                  const { phases, unlockedPhaseId, allCompleted } = completeProjectPhase(
-                    updated.phases,
-                    "website",
-                  );
-                  updated.phases = phases;
-                  const name = project.name;
-                  queueMicrotask(() => {
-                    OutcomeFeedback.stageCompleted(project.id, name, "website");
-                    if (unlockedPhaseId) {
-                      OutcomeFeedback.stageUnlocked(project.id, name, unlockedPhaseId);
-                    }
-                    if (allCompleted) {
-                      OutcomeFeedback.projectCompleted(project.id, name);
-                    }
-                  });
-                }
+                websitePhase.progress = Math.min(92, websitePhase.progress + 6);
               }
               return {
                 issuesByProject: { ...state.issuesByProject, [projectId]: issues },
@@ -411,11 +566,21 @@ export const useAppStore = create<AppStore>()(
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
       },
-      version: 1,
+      version: APP_DB_VERSION,
       migrate: (persisted) => {
-        const data = persisted as AppDatabase | undefined;
-        if (!data?.projects?.length) return createInitialDatabase();
-        return { ...createInitialDatabase(), ...data, version: 1 };
+        const base = createInitialDatabase();
+        const data = persisted as Partial<AppDatabase> | undefined;
+        if (!data?.projects?.length) return base;
+        const merged: AppDatabase = { ...base, ...data, version: APP_DB_VERSION };
+        for (const p of merged.projects) {
+          if (!merged.workflowByProject[p.id]) {
+            merged.workflowByProject[p.id] = createProjectWorkflow(p.phases);
+          }
+          if (!merged.activityByProject[p.id]) {
+            merged.activityByProject[p.id] = [];
+          }
+        }
+        return merged;
       },
     },
   ),

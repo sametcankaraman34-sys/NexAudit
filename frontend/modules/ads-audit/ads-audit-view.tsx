@@ -11,10 +11,11 @@ import { TrackingInfrastructureGrid } from "@/components/ads-audit/tracking-infr
 import { LockedState } from "@/components/feedback/locked-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { getLockedScreenCopy, isPhaseLocked } from "@/lib/audit-lock";
+import { AuditWorkflowPanel } from "@/components/workflow/audit-workflow-panel";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function AdsAuditView() {
-  const { activeProject } = useActiveProject();
+  const { activeProject, activeProjectId } = useActiveProject();
   const { adsAudit } = useProjectWorkspace();
 
   if (isPhaseLocked("ads", activeProject.phases)) {
@@ -38,7 +39,9 @@ export function AdsAuditView() {
 
   return (
     <div className="audit-page space-y-6 lg:space-y-8">
-      <IntelligenceHero summary={adsAudit.summary} icon={Megaphone} />
+      <AuditWorkflowPanel projectId={activeProjectId} phaseId="ads" />
+
+      <IntelligenceHero key={activeProjectId} summary={adsAudit.summary} icon={Megaphone} />
 
       <TrackingInfrastructureGrid cards={adsAudit.trackingCards} animationDelay={90} />
 

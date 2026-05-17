@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ContentQualityPanel } from "@/components/seo-audit/content-quality-panel";
 import { KeywordAnalysisSection } from "@/components/seo-audit/keyword-analysis-section";
 import { getLockedScreenCopy, isPhaseLocked } from "@/lib/audit-lock";
+import { AuditWorkflowPanel } from "@/components/workflow/audit-workflow-panel";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 
 export function SeoAuditView() {
@@ -39,6 +40,8 @@ export function SeoAuditView() {
 
   return (
     <div className="audit-page space-y-6 lg:space-y-8">
+      <AuditWorkflowPanel projectId={activeProjectId} phaseId="seo" />
+
       <IntelligenceHero key={activeProjectId} summary={seoAudit.summary} icon={Search} />
 
       <section className="audit-section" style={{ animationDelay: "90ms" }}>

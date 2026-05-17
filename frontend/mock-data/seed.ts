@@ -9,8 +9,10 @@ import { mockNotifications } from "@/data/mock-notifications";
 import { mockProjects } from "@/data/mock-projects";
 import { mockIntegrations, mockTeamMembers } from "@/data/mock-settings";
 import { DEMO_USER } from "@/constants/navigation";
-import type { AppDatabase, AppSettings } from "@/types/app-database";
+import { createProjectWorkflow } from "@/services/workflow-factory";
+import { APP_DB_VERSION, type AppDatabase, type AppSettings } from "@/types/app-database";
 import type { BriefItem, Issue, Notification, Project } from "@/types";
+import type { ActivityEvent } from "@/types/workflow";
 
 export type IntegrationRecord = (typeof mockIntegrations)[number];
 export type TeamMemberRecord = (typeof mockTeamMembers)[number];
@@ -76,6 +78,8 @@ export function createInitialDatabase(): AppDatabase {
   const issuesByProject: Record<string, Issue[]> = {};
   const notificationsByProject: Record<string, Notification[]> = {};
   const briefItemsByProject: Record<string, BriefItem[]> = {};
+  const workflowByProject: AppDatabase["workflowByProject"] = {};
+  const activityByProject: Record<string, ActivityEvent[]> = {};
 
   for (const project of mockProjects) {
     const issueSource =
@@ -86,15 +90,39 @@ export function createInitialDatabase(): AppDatabase {
       ...item,
       id: `${project.id}-brief-${index}`,
     }));
+    workflowByProject[project.id] = createProjectWorkflow(project.phases);
+    activityByProject[project.id] =
+      project.status === "draft"
+        ? []
+        : [
+            {
+              id: `${project.id}-act-seed-1`,
+              type: "scan.completed",
+              phaseId: "website",
+              message: "Web sitesi tarandı",
+              timeLabel: "14:22",
+              createdAt: Date.now() - 300_000,
+            },
+            {
+              id: `${project.id}-act-seed-2`,
+              type: "issue.detected",
+              phaseId: "website",
+              message: `${project.criticalIssues} kritik issue bulundu`,
+              timeLabel: "14:23",
+              createdAt: Date.now() - 240_000,
+            },
+          ];
   }
 
   return {
-    version: 1,
+    version: APP_DB_VERSION,
     activeProjectId: DEFAULT_PROJECT_ID,
     projects: mockProjects.map((p) => ({ ...p, phases: p.phases.map((ph) => ({ ...ph })) })),
     issuesByProject,
     notificationsByProject,
     briefItemsByProject,
+    workflowByProject,
+    activityByProject,
     settings: defaultSettings(),
   };
 }

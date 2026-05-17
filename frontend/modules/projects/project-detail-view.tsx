@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { PROJECT_STATUS_LABELS } from "@/constants/ui-tr";
 import { buildProjectWorkspace } from "@/data/project-workspace";
 import { useActiveProject } from "@/lib/project-context";
+import { ActivityTimeline } from "@/components/workflow/activity-timeline";
 import { useAppStore } from "@/stores/app-store";
 
 interface ProjectDetailViewProps {
@@ -19,6 +20,7 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps) {
   const projects = useAppStore((s) => s.projects);
   const issuesByProject = useAppStore((s) => s.issuesByProject);
   const notificationsByProject = useAppStore((s) => s.notificationsByProject);
+  const activities = useAppStore((s) => s.activityByProject[project.id] ?? []);
   const project = projectId
     ? (projects.find((p) => p.id === projectId) ?? projects[0])
     : projects[0];
@@ -51,6 +53,8 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps) {
           <ProgressBar value={progress} />
         </div>
       </div>
+
+      <ActivityTimeline events={activities} className="mb-6" maxItems={10} />
 
       <section className="mb-6">
         <h2 className="mb-4 text-ui-section-title font-semibold text-[var(--text-primary)]">
