@@ -1,8 +1,8 @@
-import { mockAuditPhases } from "@/data/mock-audit";
+import { DEMO_AUDIT_PHASE_STATUS } from "@/constants/audit";
 import type { AuditPhaseId } from "@/types";
 
 export function getPhaseStatus(phaseId: AuditPhaseId) {
-  return mockAuditPhases.find((p) => p.id === phaseId)?.status ?? "locked";
+  return DEMO_AUDIT_PHASE_STATUS[phaseId] ?? "locked";
 }
 
 export function isPhaseLocked(phaseId: AuditPhaseId): boolean {

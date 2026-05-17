@@ -59,7 +59,3 @@ export const mockReportHistory: ReportHistoryItem[] = [
     date: "10.05.2026",
   },
 ];
-
-export const unreadNotificationCount = mockNotifications.filter(
-  (n) => !n.read,
-).length;

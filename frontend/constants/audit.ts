@@ -1,4 +1,10 @@
-import type { AuditPhaseId } from "@/types";
+import type { AuditPhaseId, AuditPhaseStatus } from "@/types";
+
+export const DEMO_AUDIT_PHASE_STATUS: Record<AuditPhaseId, AuditPhaseStatus> = {
+  website: "completed",
+  seo: "locked",
+  ads: "locked",
+};
 
 export const AUDIT_PHASE_ORDER: AuditPhaseId[] = ["website", "seo", "ads"];
 

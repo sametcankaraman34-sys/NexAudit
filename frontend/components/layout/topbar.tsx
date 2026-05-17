@@ -2,8 +2,7 @@
 
 import { Bell, Building2, Menu, Plus, Search } from "lucide-react";
 import Link from "next/link";
-import { ACTIVE_PROJECT } from "@/constants/navigation";
-import { unreadNotificationCount } from "@/data/mock-notifications";
+import { ACTIVE_PROJECT, UNREAD_NOTIFICATION_COUNT } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
@@ -52,9 +51,9 @@ export function Topbar({ onMenuClick, showMenuButton = false }: TopbarProps) {
           aria-label="Bildirimler"
         >
           <Bell className="h-[18px] w-[18px]" />
-          {unreadNotificationCount > 0 && (
+          {UNREAD_NOTIFICATION_COUNT > 0 && (
             <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--danger)] px-1 text-[10px] font-semibold text-white">
-              {unreadNotificationCount}
+              {UNREAD_NOTIFICATION_COUNT}
             </span>
           )}
         </Link>

@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3,
   Bell,
   ClipboardCheck,
   FileText,
@@ -69,6 +68,8 @@ export const DEMO_USER = {
   email: "demo@nexaudit.app",
   initials: "AD",
 };
+
+export const UNREAD_NOTIFICATION_COUNT = 3;
 
 export const ACTIVE_PROJECT = {
   id: "proj-1",

@@ -19,8 +19,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" className={`${sfProDisplay.variable} h-full`}>
-      <body className="min-h-full antialiased">
+    <html
+      lang="tr"
+      className={`${sfProDisplay.variable} h-full`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-full antialiased" suppressHydrationWarning>
         <AppShell>{children}</AppShell>
       </body>
     </html>
