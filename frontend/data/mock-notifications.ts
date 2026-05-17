@@ -1,4 +1,4 @@
-import type { Notification, NotificationCategory, ReportHistoryItem } from "@/types";
+import type { Notification, NotificationCategory } from "@/types";
 
 export const NOTIFICATION_CATEGORY_META: Record<
   NotificationCategory,
@@ -140,19 +140,4 @@ export function groupNotificationsByCategory(items: Notification[]) {
   );
 }
 
-export const mockReportHistory: ReportHistoryItem[] = [
-  {
-    id: "r1",
-    projectName: "Ajans Demo Projesi",
-    phase: "Web Tasarım Denetimi",
-    score: 68,
-    date: "15.05.2026",
-  },
-  {
-    id: "r2",
-    projectName: "E-Ticaret Mağazası",
-    phase: "Web Tasarım Denetimi",
-    score: 54,
-    date: "10.05.2026",
-  },
-];
+export { mockReportHistory } from "@/data/mock-report-history";

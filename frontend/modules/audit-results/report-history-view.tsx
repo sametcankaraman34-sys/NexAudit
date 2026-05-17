@@ -1,55 +1,24 @@
 import { PageHeader } from "@/components/layout/page-header";
-import { DataTable } from "@/components/tables/data-table";
-import { mockReportHistory } from "@/data/mock-notifications";
-import type { ReportHistoryItem } from "@/types";
+import { AuditTimelineSection } from "@/components/report-history/audit-timeline-section";
+import { EvolutionComparisonSection } from "@/components/report-history/evolution-comparison-section";
+import { HistoricalInsightsPanel } from "@/components/report-history/historical-insights-panel";
+import { HistoryOverviewSection } from "@/components/report-history/history-overview-section";
 
 export function ReportHistoryView() {
-  const columns = [
-    {
-      key: "project",
-      header: "Proje",
-      render: (row: ReportHistoryItem) => (
-        <span className="text-sm font-medium text-[var(--text-primary)]">{row.projectName}</span>
-      ),
-    },
-    {
-      key: "phase",
-      header: "Aşama",
-      render: (row: ReportHistoryItem) => (
-        <span className="text-sm text-[var(--text-secondary)]">{row.phase}</span>
-      ),
-    },
-    {
-      key: "score",
-      header: "Skor",
-      render: (row: ReportHistoryItem) => (
-        <span className="text-sm font-medium text-[var(--text-primary)]">{row.score}/100</span>
-      ),
-    },
-    {
-      key: "date",
-      header: "Tarih",
-      className: "text-right",
-      render: (row: ReportHistoryItem) => (
-        <span className="text-sm text-[var(--text-secondary)]">{row.date}</span>
-      ),
-    },
-  ];
-
   return (
-    <>
+    <div className="audit-page space-y-6 lg:space-y-8">
       <PageHeader
         title="Rapor Geçmişi"
-        description="Tamamlanan denetim raporlarının geçmişi."
+        description="Denetim evrimi, skor ilerlemesi ve optimizasyon arşivi."
       />
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
-        <DataTable
-          columns={columns}
-          data={mockReportHistory}
-          getRowKey={(r) => r.id}
-          emptyMessage="Henüz rapor geçmişi yok."
-        />
-      </section>
-    </>
+      <HistoryOverviewSection />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+        <AuditTimelineSection />
+        <div className="space-y-6">
+          <EvolutionComparisonSection />
+          <HistoricalInsightsPanel />
+        </div>
+      </div>
+    </div>
   );
 }
