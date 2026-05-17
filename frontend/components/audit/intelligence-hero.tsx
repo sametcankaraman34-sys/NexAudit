@@ -38,8 +38,8 @@ export function IntelligenceHero({ summary, icon: Icon }: IntelligenceHeroProps)
           <StatusBadge variant="good" label={summary.statusLabel} />
         </div>
 
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
-          <div className="min-w-0 flex-1 space-y-3 lg:max-w-xl">
+        <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 space-y-3 sm:max-w-[min(100%,36rem)]">
             <div>
               <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-2xl">
                 {summary.title}
@@ -57,7 +57,7 @@ export function IntelligenceHero({ summary, icon: Icon }: IntelligenceHeroProps)
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-3 sm:gap-4">
+          <div className="flex shrink-0 items-center gap-3 self-end sm:gap-4 sm:self-auto">
             <ScoreRing
               score={summary.overallScore}
               scoreColor={scoreColor}
