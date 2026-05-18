@@ -11,6 +11,7 @@ import {
 } from "@/lib/workflow-notify";
 import { createProjectWorkflow } from "@/services/workflow-factory";
 import { completeProjectPhase } from "@/services/phase-completion";
+import { createPhaseCompleteReportEntry } from "@/services/report-history";
 import { recalculateProjectMetrics } from "@/services/project-metrics";
 import { runPhaseScan } from "@/stores/scan-runner";
 import {
@@ -26,6 +27,12 @@ import type {
   AsyncState,
   CreateProjectInput,
 } from "@/types/app-database";
+import { DEMO_USER } from "@/constants/navigation";
+import { NexToast } from "@/lib/nex-toast";
+import {
+  buildProjectArchivedNotification,
+  buildProjectUpdatedNotification,
+} from "@/lib/project-notifications";
 import type { BriefItem, BriefItemStatus, Issue, IssueStatus, Notification, Project } from "@/types";
 
 export interface AppStore extends AppDatabase {
@@ -64,6 +71,7 @@ export interface AppStore extends AppDatabase {
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
   toggleIntegration: (integrationId: string) => Promise<void>;
   resetDatabase: () => void;
+  clearReportHistory: (projectId: string) => Promise<void>;
 }
 
 function generateId(prefix: string): string {
@@ -176,6 +184,10 @@ export const useAppStore = create<AppStore>()(
                 buildActivityEntry("scan.started", "Proje oluşturuldu · ilk tur hazır", "website"),
               ],
             },
+            reportHistoryByProject: {
+              ...state.reportHistoryByProject,
+              [id]: [],
+            },
             activeProjectId: id,
             async: { isLoading: false, lastAction: "createProject" },
           }));
@@ -185,17 +197,36 @@ export const useAppStore = create<AppStore>()(
       },
 
       updateProject: async (id, patch) => {
+        const existing = get().projects.find((p) => p.id === id);
+        if (!existing) return;
         set({ async: { isLoading: true, lastAction: "updateProject" } });
         await withMockApi(() => {
-          set((state) => ({
-            projects: state.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)),
-            async: { isLoading: false, lastAction: "updateProject" },
-          }));
+          set((state) => {
+            const updated: Project = {
+              ...existing,
+              ...patch,
+              updatedAt: new Date().toISOString().slice(0, 10),
+              lastActor: DEMO_USER.name,
+              lastActivity: patch.lastActivity ?? "Proje bilgileri güncellendi",
+            };
+            return {
+              projects: state.projects.map((p) => (p.id === id ? updated : p)),
+              activityByProject: {
+                ...state.activityByProject,
+                [id]: prependActivity(
+                  state.activityByProject[id] ?? [],
+                  buildActivityEntry("notification.sent", "Proje düzenlendi"),
+                ),
+              },
+              async: { isLoading: false, lastAction: "updateProject" },
+            };
+          });
         });
+        get().addNotification(id, buildProjectUpdatedNotification(existing.name));
+        NexToast.success("Proje güncellendi", existing.name);
       },
 
       deleteProject: async (id) => {
-        const projectName = get().projects.find((p) => p.id === id)?.name ?? "Proje";
         set({ async: { isLoading: true, lastAction: "deleteProject" } });
         await withMockApi(() => {
           set((state) => {
@@ -203,6 +234,9 @@ export const useAppStore = create<AppStore>()(
             const { [id]: _i, ...issuesByProject } = state.issuesByProject;
             const { [id]: _n, ...notificationsByProject } = state.notificationsByProject;
             const { [id]: _b, ...briefItemsByProject } = state.briefItemsByProject;
+            const { [id]: _w, ...workflowByProject } = state.workflowByProject;
+            const { [id]: _a, ...activityByProject } = state.activityByProject;
+            const { [id]: _r, ...reportHistoryByProject } = state.reportHistoryByProject;
             const activeProjectId =
               state.activeProjectId === id
                 ? (projects[0]?.id ?? DEFAULT_PROJECT_ID)
@@ -212,12 +246,15 @@ export const useAppStore = create<AppStore>()(
               issuesByProject,
               notificationsByProject,
               briefItemsByProject,
+              workflowByProject,
+              activityByProject,
+              reportHistoryByProject,
               activeProjectId,
               async: { isLoading: false, lastAction: "deleteProject" },
             };
           });
         });
-        OutcomeFeedback.projectDeleted(projectName);
+        NexToast.success("Proje silindi.");
       },
 
       archiveProject: async (id) => {
@@ -231,15 +268,24 @@ export const useAppStore = create<AppStore>()(
                 ? {
                     ...p,
                     status: "archived" as const,
-                    lastActivity: "Proje arşive kaldırıldı",
+                    lastActivity: "Proje arşive taşındı",
+                    lastActor: DEMO_USER.name,
                     updatedAt: new Date().toISOString().slice(0, 10),
                   }
                 : p,
             ),
+            activityByProject: {
+              ...state.activityByProject,
+              [id]: prependActivity(
+                state.activityByProject[id] ?? [],
+                buildActivityEntry("notification.sent", "Proje arşive taşındı"),
+              ),
+            },
             async: { isLoading: false, lastAction: "archiveProject" },
           }));
         });
-        OutcomeFeedback.projectCancelled(id, project.name);
+        get().addNotification(id, buildProjectArchivedNotification(project.name));
+        NexToast.success("Proje arşive taşındı.");
       },
 
       startPhaseScan: async (projectId, phaseId) => {
@@ -290,12 +336,18 @@ export const useAppStore = create<AppStore>()(
             );
             const phaseLabel =
               phaseId === "website" ? "Web Tasarım" : phaseId === "seo" ? "SEO" : "Reklam";
-            const updated: Project = {
-              ...project,
-              phases,
-              lastActivity: `${phaseLabel} onaylandı`,
-              updatedAt: new Date().toISOString().slice(0, 10),
-            };
+            const issues = get().issuesByProject[projectId] ?? [];
+            const previousScore = project.overallScore;
+            const resolvedCount = issues.filter((i) => i.status === "resolved").length;
+            const updated: Project = recalculateProjectMetrics(
+              {
+                ...project,
+                phases,
+                lastActivity: `${phaseLabel} onaylandı`,
+                updatedAt: new Date().toISOString().slice(0, 10),
+              },
+              issues,
+            );
 
             set((state) => {
               let activities = prependActivity(
@@ -331,6 +383,14 @@ export const useAppStore = create<AppStore>()(
                 });
               }
 
+              const reportEntry = createPhaseCompleteReportEntry(
+                updated,
+                phaseId,
+                previousScore,
+                updated.overallScore,
+                resolvedCount,
+              );
+
               return {
                 ...syncProjectInState(state, projectId, updated),
                 workflowByProject: { ...state.workflowByProject, [projectId]: workflow },
@@ -338,6 +398,13 @@ export const useAppStore = create<AppStore>()(
                 notificationsByProject: {
                   ...state.notificationsByProject,
                   [projectId]: notifications,
+                },
+                reportHistoryByProject: {
+                  ...state.reportHistoryByProject,
+                  [projectId]: [
+                    reportEntry,
+                    ...(state.reportHistoryByProject[projectId] ?? []),
+                  ].slice(0, 40),
                 },
                 async: { isLoading: false, lastAction: "completePhase" },
               };
@@ -366,10 +433,34 @@ export const useAppStore = create<AppStore>()(
       reopenPhase: async (projectId, phaseId) => {
         const project = get().projects.find((p) => p.id === projectId);
         if (!project) return;
+        const phaseLabel =
+          phaseId === "website" ? "Web Tasarım" : phaseId === "seo" ? "SEO" : "Reklam";
         await withMockApi(() => {
           const phases = project.phases.map((p) =>
-            p.id === phaseId ? { ...p, status: "in_progress" as const, progress: Math.min(p.progress, 85) } : p,
+            p.id === phaseId
+              ? {
+                  ...p,
+                  status: "in_progress" as const,
+                  progress: Math.min(Math.max(p.progress, 40), 85),
+                }
+              : p,
           );
+          const notification: Notification = {
+            id: generateId("n"),
+            title: `${phaseLabel} yeniden açıldı`,
+            message: `${project.name} · ek inceleme için aşama tekrar aktif.`,
+            time: "Az önce",
+            read: false,
+            category: "audit",
+            severity: "medium",
+            actionHref:
+              phaseId === "website"
+                ? "/website-audit"
+                : phaseId === "seo"
+                  ? "/seo-audit"
+                  : "/ads-audit",
+            actionLabel: "Denetime git",
+          };
           set((state) => ({
             ...syncProjectInState(state, projectId, {
               ...project,
@@ -384,6 +475,10 @@ export const useAppStore = create<AppStore>()(
                 scan: { status: "idle", progress: 0, currentStep: null },
               }),
             },
+            notificationsByProject: {
+              ...state.notificationsByProject,
+              [projectId]: [notification, ...(state.notificationsByProject[projectId] ?? [])],
+            },
             activityByProject: {
               ...state.activityByProject,
               [projectId]: prependActivity(
@@ -392,6 +487,7 @@ export const useAppStore = create<AppStore>()(
               ),
             },
           }));
+          NexToast.success("Aşama yeniden açıldı", `${phaseLabel} turu tekrar düzenlenebilir.`);
         }, { delayMs: 240 });
       },
 
@@ -436,28 +532,51 @@ export const useAppStore = create<AppStore>()(
       },
 
       updateIssueStatus: async (projectId, issueId, status) => {
-        set({ async: { isLoading: true, lastAction: "updateIssue" } });
         await withMockApi(
           () => {
             set((state) => {
+              const prevIssue = (state.issuesByProject[projectId] ?? []).find((i) => i.id === issueId);
               const issues = (state.issuesByProject[projectId] ?? []).map((issue) =>
                 issue.id === issueId ? { ...issue, status } : issue,
               );
               const project = state.projects.find((p) => p.id === projectId);
-              if (!project) return { async: { isLoading: false, lastAction: "updateIssue" } };
+              if (!project) return state;
               const updated = recalculateProjectMetrics(project, issues);
-              const websitePhase = updated.phases.find((p) => p.id === "website");
-              if (websitePhase && status === "resolved") {
-                websitePhase.progress = Math.min(92, websitePhase.progress + 6);
+              const phase = prevIssue?.phase;
+              if (phase && phase !== "brief") {
+                const phaseState = updated.phases.find((p) => p.id === phase);
+                if (phaseState && status === "resolved") {
+                  phaseState.progress = Math.min(92, phaseState.progress + 6);
+                }
               }
+              const statusLabel =
+                status === "resolved"
+                  ? "çözüldü"
+                  : status === "ignored"
+                    ? "yok sayıldı"
+                    : status === "in_progress"
+                      ? "devam ediyor"
+                      : "yeniden açıldı";
               return {
                 issuesByProject: { ...state.issuesByProject, [projectId]: issues },
                 ...syncProjectInState(state, projectId, updated),
-                async: { isLoading: false, lastAction: "updateIssue" },
+                activityByProject: {
+                  ...state.activityByProject,
+                  [projectId]: prependActivity(
+                    state.activityByProject[projectId] ?? [],
+                    buildActivityEntry(
+                      "issue.detected",
+                      prevIssue
+                        ? `«${prevIssue.title}» ${statusLabel}`
+                        : `Sorun durumu güncellendi`,
+                      phase && phase !== "brief" ? phase : "website",
+                    ),
+                  ),
+                },
               };
             });
           },
-          { delayMs: 280 },
+          { delayMs: 220 },
         );
       },
 
@@ -500,27 +619,39 @@ export const useAppStore = create<AppStore>()(
       },
 
       updateBriefItem: async (projectId, itemId, patch) => {
-        set({ async: { isLoading: true, lastAction: "updateBrief" } });
         await withMockApi(() => {
           set((state) => {
             const items = (state.briefItemsByProject[projectId] ?? []).map((item) =>
               item.id === itemId ? { ...item, ...patch } : item,
             );
             const project = state.projects.find((p) => p.id === projectId);
-            if (!project) {
-              return { async: { isLoading: false, lastAction: "updateBrief" } };
-            }
+            if (!project) return state;
             const met = items.filter((i) => i.status === "met").length;
             const total = items.length || 1;
             const briefScore = Math.round((met / total) * 100);
-            const updated = { ...project, briefScore };
+            const updated = {
+              ...project,
+              briefScore,
+              lastActivity: "Brief uyumluluk skoru güncellendi",
+            };
+            const item = items.find((i) => i.id === itemId);
             return {
               briefItemsByProject: { ...state.briefItemsByProject, [projectId]: items },
               ...syncProjectInState(state, projectId, updated),
-              async: { isLoading: false, lastAction: "updateBrief" },
+              activityByProject: {
+                ...state.activityByProject,
+                [projectId]: prependActivity(
+                  state.activityByProject[projectId] ?? [],
+                  buildActivityEntry(
+                    "review.required",
+                    item ? `Brief: ${item.label}` : "Brief maddesi güncellendi",
+                    "website",
+                  ),
+                ),
+              },
             };
           });
-        });
+        }, { delayMs: 180 });
       },
 
       updateSettings: async (patch) => {
@@ -555,6 +686,14 @@ export const useAppStore = create<AppStore>()(
       resetDatabase: () => {
         set({ ...createInitialDatabase(), async: { isLoading: false, lastAction: "reset" } });
       },
+
+      clearReportHistory: async (projectId) => {
+        await withMockApi(() => {
+          set((state) => ({
+            reportHistoryByProject: { ...state.reportHistoryByProject, [projectId]: [] },
+          }));
+        }, { delayMs: 160 });
+      },
     }),
     {
       name: "nexaudit-app-db",
@@ -572,12 +711,18 @@ export const useAppStore = create<AppStore>()(
         const data = persisted as Partial<AppDatabase> | undefined;
         if (!data?.projects?.length) return base;
         const merged: AppDatabase = { ...base, ...data, version: APP_DB_VERSION };
+        if (!merged.reportHistoryByProject) {
+          merged.reportHistoryByProject = {};
+        }
         for (const p of merged.projects) {
           if (!merged.workflowByProject[p.id]) {
             merged.workflowByProject[p.id] = createProjectWorkflow(p.phases);
           }
           if (!merged.activityByProject[p.id]) {
             merged.activityByProject[p.id] = [];
+          }
+          if (!merged.reportHistoryByProject[p.id]) {
+            merged.reportHistoryByProject[p.id] = [];
           }
         }
         return merged;

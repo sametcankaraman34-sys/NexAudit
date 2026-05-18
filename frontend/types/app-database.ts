@@ -1,3 +1,4 @@
+import type { AuditTimelineEntry } from "@/data/mock-report-history";
 import type { BriefItem, Issue, Notification, Project } from "@/types";
 import type { ActivityEvent, ProjectWorkflowMap } from "@/types/workflow";
 
@@ -16,7 +17,7 @@ export interface TeamMemberRecord {
   initials: string;
 }
 
-export const APP_DB_VERSION = 2;
+export const APP_DB_VERSION = 3;
 export const STORAGE_KEY = "nexaudit-app-db";
 
 export interface NotificationPreferences {
@@ -67,6 +68,7 @@ export interface AppDatabase {
   briefItemsByProject: Record<string, BriefItem[]>;
   workflowByProject: Record<string, ProjectWorkflowMap>;
   activityByProject: Record<string, ActivityEvent[]>;
+  reportHistoryByProject: Record<string, AuditTimelineEntry[]>;
   settings: AppSettings;
 }
 

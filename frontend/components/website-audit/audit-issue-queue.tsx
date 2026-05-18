@@ -8,6 +8,7 @@ const statusVariant = {
   detected: "detected" as const,
   in_progress: "in_progress" as const,
   resolved: "resolved" as const,
+  ignored: "ignored" as const,
 };
 
 interface AuditIssueQueueProps {

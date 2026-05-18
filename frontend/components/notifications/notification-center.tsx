@@ -50,12 +50,12 @@ export function NotificationBell() {
   const markRead = useAppStore((s) => s.markNotificationRead);
   const markAllRead = useAppStore((s) => s.markAllNotificationsRead);
   const clearAll = useAppStore((s) => s.clearNotifications);
-  const [items, setItems] = useState<Notification[]>(projectNotifications);
+  const [liveItems, setLiveItems] = useState<Notification[]>([]);
+  const items = useMemo(
+    () => [...liveItems, ...projectNotifications],
+    [liveItems, projectNotifications],
+  );
   const unreadCount = useMemo(() => getUnreadNotificationCount(items), [items]);
-
-  useEffect(() => {
-    setItems(projectNotifications);
-  }, [activeProjectId, projectNotifications]);
 
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {
@@ -68,14 +68,14 @@ export function NotificationBell() {
   const markReadLocal = useCallback(
     (id: string) => {
       markRead(activeProjectId, id);
-      setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      setLiveItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
     },
     [activeProjectId, markRead],
   );
 
   useEffect(() => {
     return subscribeLiveNotifications((notification) => {
-      setItems((prev) => [notification, ...prev]);
+      setLiveItems((prev) => [notification, ...prev]);
     });
   }, []);
 
@@ -147,7 +147,7 @@ export function NotificationBell() {
                       className="text-[12px] font-medium text-[var(--primary)] hover:underline"
                       onClick={() => {
                         markAllRead(activeProjectId);
-                        setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+                        setLiveItems((prev) => prev.map((n) => ({ ...n, read: true })));
                       }}
                     >
                       Tümünü oku
@@ -157,7 +157,7 @@ export function NotificationBell() {
                       className="text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--danger)]"
                       onClick={() => {
                         clearAll(activeProjectId);
-                        setItems([]);
+                        setLiveItems([]);
                       }}
                     >
                       Temizle
@@ -168,18 +168,35 @@ export function NotificationBell() {
             </div>
 
             <ul className="notif-dropdown-list max-h-[min(280px,50vh)] overflow-y-auto overscroll-contain py-1">
-              {sortedItems.map((notification, index) => (
-                <NotificationRow
-                  key={notification.id}
-                  notification={notification}
-                  index={index}
-                  onSelect={() => {
-                    markReadLocal(notification.id);
-                    setOpen(false);
-                  }}
-                />
-              ))}
+              {sortedItems.length === 0 ? (
+                <li className="px-4 py-8 text-center text-sm text-[var(--text-secondary)]">
+                  Henüz bildirim yok. Tarama veya aşama tamamlama sonrası burada görünür.
+                </li>
+              ) : (
+                sortedItems.map((notification, index) => (
+                  <NotificationRow
+                    key={notification.id}
+                    notification={notification}
+                    index={index}
+                    onSelect={() => {
+                      markReadLocal(notification.id);
+                      setOpen(false);
+                    }}
+                  />
+                ))
+              )}
             </ul>
+            {sortedItems.length > 0 && (
+              <div className="border-t border-[var(--border)]/80 px-3 py-2 text-center">
+                <Link
+                  href="/notifications"
+                  onClick={() => setOpen(false)}
+                  className="text-xs font-medium text-[var(--primary)] hover:underline"
+                >
+                  Tüm bildirimleri gör
+                </Link>
+              </div>
+            )}
           </div>
         </>
       )}

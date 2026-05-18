@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
 
-type StatusVariant = "detected" | "in_progress" | "resolved" | "good" | "locked";
+type StatusVariant = "detected" | "in_progress" | "resolved" | "ignored" | "good" | "locked";
 
 const variants: Record<StatusVariant, string> = {
   detected: "bg-[var(--surface-soft)] text-[var(--text-secondary)]",
   in_progress: "bg-[var(--primary-soft)] text-[var(--primary)]",
   resolved: "bg-[var(--success-soft)] text-[var(--success)]",
+  ignored: "bg-[var(--surface-soft)] text-[var(--text-secondary)]",
   good: "bg-[var(--success-soft)] text-[var(--success)]",
   locked: "bg-[var(--surface-soft)] text-[var(--text-secondary)]",
 };
@@ -14,6 +15,7 @@ const labels: Record<StatusVariant, string> = {
   detected: "Tespit Edildi",
   in_progress: "Devam Ediyor",
   resolved: "Çözüldü",
+  ignored: "Yok Sayıldı",
   good: "İyi",
   locked: "Sırada",
 };

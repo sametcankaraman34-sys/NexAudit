@@ -12,6 +12,7 @@ const statusVariant = {
   detected: "detected" as const,
   in_progress: "in_progress" as const,
   resolved: "resolved" as const,
+  ignored: "ignored" as const,
 };
 
 interface IssueRowProps {
@@ -25,17 +26,11 @@ export function IssueRow({ issue, compact }: IssueRowProps) {
   const isLoading = useAppStore((s) => s.async.isLoading);
   const cellPy = compact ? "py-2.5" : "py-3.5";
 
-  const cycleStatus = async () => {
-    const next: IssueStatus =
-      issue.status === "detected"
-        ? "in_progress"
-        : issue.status === "in_progress"
-          ? "resolved"
-          : "detected";
-    await updateIssueStatus(activeProjectId, issue.id, next);
-    if (next === "resolved") {
-      NexToast.success("Sorun çözüldü", issue.title);
-    }
+  const setStatus = async (status: IssueStatus) => {
+    await updateIssueStatus(activeProjectId, issue.id, status);
+    if (status === "resolved") NexToast.success("Sorun çözüldü", issue.title);
+    else if (status === "ignored") NexToast.success("Yok sayıldı", issue.title);
+    else if (status === "detected") NexToast.success("Sorun yeniden açıldı", issue.title);
   };
 
   return (
@@ -63,15 +58,39 @@ export function IssueRow({ issue, compact }: IssueRowProps) {
         {issue.location}
       </td>
       <td className={cn(cellPy, "text-right")}>
-        <button
-          type="button"
-          disabled={isLoading}
-          onClick={cycleStatus}
-          className="btn-transition inline-flex"
-          title="Durumu değiştir"
-        >
+        <div className="flex flex-wrap justify-end gap-1">
+          {issue.status !== "resolved" && issue.status !== "ignored" && (
+            <>
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => void setStatus("resolved")}
+                className="btn-transition rounded-md bg-[var(--success-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--success)]"
+              >
+                Çöz
+              </button>
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={() => void setStatus("ignored")}
+                className="btn-transition rounded-md border border-[var(--border)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-secondary)]"
+              >
+                Yok say
+              </button>
+            </>
+          )}
+          {(issue.status === "resolved" || issue.status === "ignored") && (
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() => void setStatus("detected")}
+              className="btn-transition rounded-md border border-[var(--border)] px-2 py-0.5 text-[11px] font-semibold"
+            >
+              Aç
+            </button>
+          )}
           <StatusBadge variant={statusVariant[issue.status]} />
-        </button>
+        </div>
       </td>
     </tr>
   );

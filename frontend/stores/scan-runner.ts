@@ -1,6 +1,9 @@
 import { SCAN_STEPS } from "@/constants/workflow";
+import { NexToast } from "@/lib/nex-toast";
 import { buildScanCompletedNotification } from "@/lib/workflow-notify";
 import { applyScanResultsToProject } from "@/services/scan-results";
+import { createScanReportEntry } from "@/services/report-history";
+import type { AuditTimelineEntry } from "@/data/mock-report-history";
 import { formatActivityTime } from "@/services/workflow-factory";
 import {
   buildActivityEntry,
@@ -58,7 +61,17 @@ export async function runPhaseScan(
   if (!project) return;
 
   const phase = project.phases.find((p) => p.id === phaseId);
-  if (!phase || phase.status === "locked") return;
+  if (!phase || phase.status === "locked" || phase.status === "completed") return;
+
+  if (phase.status === "not_started") {
+    const promoted: Project = {
+      ...project,
+      phases: project.phases.map((p) =>
+        p.id === phaseId ? { ...p, status: "in_progress" as const, progress: Math.max(p.progress, 5) } : p,
+      ),
+    };
+    set((state) => syncProjectInState(state, projectId, promoted));
+  }
 
   const wf = get().workflowByProject[projectId]?.[phaseId];
   if (wf?.scan.status === "scanning" || wf?.scan.status === "analyzing") return;
@@ -110,9 +123,22 @@ export async function runPhaseScan(
 
   await delay(420);
 
+  const currentProject = get().projects.find((p) => p.id === projectId) ?? project;
   const issues = get().issuesByProject[projectId] ?? [];
+  const previousScore = currentProject.overallScore;
   const { project: updatedProject, issues: newIssues, newIssueCount } =
-    applyScanResultsToProject(project, issues, phaseId);
+    applyScanResultsToProject(currentProject, issues, phaseId);
+
+  const reportEntry = createScanReportEntry(
+    updatedProject,
+    phaseId,
+    previousScore,
+    updatedProject.overallScore,
+    newIssues.filter((i) => i.status === "resolved").length,
+  );
+
+  const phaseLabelToast =
+    phaseId === "website" ? "Web Tasarım" : phaseId === "seo" ? "SEO" : "Reklam & Dönüşüm";
 
   set((state) => ({
     ...syncProjectInState(state, projectId, updatedProject),
@@ -143,6 +169,13 @@ export async function runPhaseScan(
         },
       ),
     },
+    reportHistoryByProject: {
+      ...state.reportHistoryByProject,
+      [projectId]: [
+        reportEntry,
+        ...(state.reportHistoryByProject[projectId] ?? []),
+      ].slice(0, 40) as AuditTimelineEntry[],
+    },
     activityByProject: (() => {
       let activities = state.activityByProject[projectId] ?? [];
       activities = prependActivity(
@@ -167,4 +200,5 @@ export async function runPhaseScan(
     })(),
   }));
 
+  NexToast.auditCompleted(phaseLabelToast, updatedProject.overallScore);
 }

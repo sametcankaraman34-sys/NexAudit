@@ -23,9 +23,9 @@ export const NexToast = {
   projectCreated(projectName: string) {
     return toast({
       variant: "success",
-      title: "Proje hazır",
-      description: `${projectName} eklendi — ilk taramayı birlikte başlatabiliriz.`,
-      action: { label: "Projeye git", href: "/projects" },
+      title: "Yeni proje oluşturuldu ✨",
+      description: `${projectName} eklendi — ilk taramayı başlatabilirsin.`,
+      action: { label: "Panele git", href: "/" },
     });
   },
   auditCompleted(phaseLabel: string, score?: number) {

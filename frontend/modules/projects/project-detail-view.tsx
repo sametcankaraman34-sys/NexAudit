@@ -20,10 +20,10 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps) {
   const projects = useAppStore((s) => s.projects);
   const issuesByProject = useAppStore((s) => s.issuesByProject);
   const notificationsByProject = useAppStore((s) => s.notificationsByProject);
-  const activities = useAppStore((s) => s.activityByProject[project.id] ?? []);
   const project = projectId
     ? (projects.find((p) => p.id === projectId) ?? projects[0])
     : projects[0];
+  const activities = useAppStore((s) => s.activityByProject[project?.id ?? ""] ?? []);
   const { dashboard } = buildProjectWorkspace(project, {
     issues: issuesByProject[project.id] ?? [],
     notifications: notificationsByProject[project.id] ?? [],
@@ -77,7 +77,7 @@ export function ProjectDetailView({ projectId }: ProjectDetailViewProps) {
           onClick={() => setActiveProjectId(project.id)}
           className="btn-transition rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-soft)]"
         >
-          Bu projeyi workspace olarak seç
+          Bu projeyi aktif yap
         </button>
         <Link
           href="/website-audit"

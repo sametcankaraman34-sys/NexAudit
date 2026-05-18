@@ -24,7 +24,7 @@ export function completeProjectPhase(
 
   if (nextId) {
     const next = updated.find((p) => p.id === nextId);
-    if (next?.status === "locked") {
+    if (next?.status === "locked" || next?.status === "not_started") {
       unlockedPhaseId = nextId;
       result = updated.map((p) =>
         p.id === nextId

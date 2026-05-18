@@ -4,7 +4,7 @@ export type AuditPhaseStatus = "active" | "completed" | "locked";
 
 export type IssueSeverity = "critical" | "high" | "medium" | "low" | "improvement";
 
-export type IssueStatus = "detected" | "in_progress" | "resolved";
+export type IssueStatus = "detected" | "in_progress" | "resolved" | "ignored";
 
 export type BriefItemStatus = "met" | "missing" | "partial" | "critical";
 
@@ -36,6 +36,8 @@ export interface Project {
   issueBreakdown: [number, number, number, number];
   totalIssues: number;
   scoreHistory: number[];
+  notes?: string;
+  lastActor?: string;
 }
 
 export interface AuditPhase {

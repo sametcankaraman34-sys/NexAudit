@@ -3,8 +3,10 @@
 import { ArrowRight, Lock, Monitor, Megaphone, Search, Trophy } from "lucide-react";
 import Link from "next/link";
 import { ProgressBar } from "@/components/feedback/progress-bar";
+import { useActiveProject } from "@/lib/project-context";
 import { NexToast } from "@/lib/nex-toast";
 import { getAuditFinalMessage, getPhaseCardCopy } from "@/lib/phase-copy";
+import { useAppStore } from "@/stores/app-store";
 import { cn } from "@/lib/utils";
 import type { AuditPhase } from "@/types";
 
@@ -33,6 +35,8 @@ export function AuditPhaseCard({
   const isLocked = phase.status === "locked";
   const isCompleted = phase.status === "completed";
   const isActive = phase.status === "active";
+  const { activeProjectId } = useActiveProject();
+  const startPhaseScan = useAppStore((s) => s.startPhaseScan);
 
   const handlePhaseAction = () => {
     if (copy.ctaDisabled) return;
@@ -40,7 +44,10 @@ export function AuditPhaseCard({
       NexToast.success("Sıradaki adıma hazırsın", copy.statusLine);
       return;
     }
-    if (!isLocked) {
+    if (!isLocked && isActive) {
+      void startPhaseScan(activeProjectId, phase.id);
+      NexToast.auditStarted(phase.title, copy.ctaHref);
+    } else if (!isLocked) {
       NexToast.auditStarted(phase.title, copy.ctaHref);
     }
   };

@@ -21,7 +21,7 @@ export function DashboardView() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Dashboard"
+        title="Kontrol Paneli"
         greeting={`Merhaba, ${DEMO_USER.name}! 👋`}
         description="Sıradaki adımı birlikte bulalım — skor, sorunlar ve iyileştirme fırsatları burada."
         compact

@@ -1,9 +1,11 @@
 "use client";
 
-import { History, Megaphone, Monitor, Search } from "lucide-react";
+import { ArrowRight, History, Megaphone, Monitor, Search } from "lucide-react";
+import Link from "next/link";
 import { AnalysisSectionHeader } from "@/components/audit/analysis-section-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { AuditTimelineEntry } from "@/data/mock-report-history";
+import { PHASE_ROUTES } from "@/lib/phase-copy";
 import { useProjectWorkspace } from "@/lib/project-context";
 import { cn } from "@/lib/utils";
 
@@ -34,11 +36,17 @@ export function AuditTimelineSection() {
         />
       </div>
 
-      <ol className="relative space-y-0">
-        {auditTimeline.map((entry, index) => (
-          <TimelineItem key={entry.id} entry={entry} index={index} isLast={index === auditTimeline.length - 1} />
-        ))}
-      </ol>
+      {auditTimeline.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-[var(--border)] px-4 py-10 text-center text-sm text-[var(--text-secondary)]">
+          Henüz rapor kaydı yok. Bir denetim taraması başlattığında geçmiş burada oluşur.
+        </p>
+      ) : (
+        <ol className="relative space-y-0">
+          {auditTimeline.map((entry, index) => (
+            <TimelineItem key={entry.id} entry={entry} index={index} isLast={index === auditTimeline.length - 1} />
+          ))}
+        </ol>
+      )}
     </section>
   );
 }
@@ -139,6 +147,13 @@ function TimelineItem({
             </span>
           ))}
         </div>
+        <Link
+          href={PHASE_ROUTES[entry.phaseId]}
+          className="phase-cta btn-transition mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] py-2 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--primary-soft)] hover:text-[var(--primary)]"
+        >
+          Detayları gör
+          <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+        </Link>
       </article>
     </li>
   );

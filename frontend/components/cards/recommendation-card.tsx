@@ -1,4 +1,5 @@
 import { Image, Search, Smartphone, Zap } from "lucide-react";
+import Link from "next/link";
 import { IMPACT_LABELS } from "@/constants/audit";
 import { cn } from "@/lib/utils";
 import type { Recommendation } from "@/types";
@@ -30,7 +31,8 @@ export function RecommendationCard({
   const Icon = iconMap[item.icon as keyof typeof iconMap] ?? Zap;
 
   return (
-    <article
+    <Link
+      href="/website-audit"
       className={cn(
         "card-interactive radar-legend-item flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/40",
         compact ? "p-3" : "gap-4 rounded-xl bg-[var(--surface)] p-4",
@@ -77,6 +79,6 @@ export function RecommendationCard({
         </span>
         <p className="text-xs text-[var(--text-secondary)]">puan</p>
       </div>
-    </article>
+    </Link>
   );
 }

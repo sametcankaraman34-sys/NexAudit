@@ -80,6 +80,7 @@ export function createInitialDatabase(): AppDatabase {
   const briefItemsByProject: Record<string, BriefItem[]> = {};
   const workflowByProject: AppDatabase["workflowByProject"] = {};
   const activityByProject: Record<string, ActivityEvent[]> = {};
+  const reportHistoryByProject: Record<string, AppDatabase["reportHistoryByProject"][string]> = {};
 
   for (const project of mockProjects) {
     const issueSource =
@@ -91,6 +92,7 @@ export function createInitialDatabase(): AppDatabase {
       id: `${project.id}-brief-${index}`,
     }));
     workflowByProject[project.id] = createProjectWorkflow(project.phases);
+    reportHistoryByProject[project.id] = [];
     activityByProject[project.id] =
       project.status === "draft"
         ? []
@@ -123,6 +125,7 @@ export function createInitialDatabase(): AppDatabase {
     briefItemsByProject,
     workflowByProject,
     activityByProject,
+    reportHistoryByProject,
     settings: defaultSettings(),
   };
 }

@@ -25,7 +25,7 @@ export interface NavGroup {
 export const NAV_GROUPS: NavGroup[] = [
   {
     title: "",
-    items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard }],
+    items: [{ label: "Kontrol Paneli", href: "/", icon: LayoutDashboard }],
   },
   {
     title: "PROJELER",

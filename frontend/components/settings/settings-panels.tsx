@@ -63,6 +63,21 @@ export function SettingsPanel({ section }: { section: SettingsSectionId }) {
 }
 
 function ProfilePanel() {
+  const profile = useAppStore((s) => s.settings.profile);
+  const updateSettings = useAppStore((s) => s.updateSettings);
+  const [name, setName] = useState(profile.name);
+  const [email, setEmail] = useState(profile.email);
+  const [companyName, setCompanyName] = useState(profile.companyName);
+  const [website, setWebsite] = useState(profile.website);
+  const [timezone, setTimezone] = useState(profile.timezone);
+  const [language, setLanguage] = useState(profile.language);
+
+  const save = () => {
+    void updateSettings({
+      profile: { name, email, companyName, website, timezone, language },
+    }).then(() => NexToast.success("Ayarlar kaydedildi", "Profil bilgilerin güncellendi."));
+  };
+
   return (
     <div className="settings-panel space-y-4">
       <SettingsPanelHeader
@@ -80,36 +95,39 @@ function ProfilePanel() {
               type="button"
               variant="outline"
               className="btn-transition h-9 rounded-lg border-[var(--border)] text-xs"
+              onClick={() => NexToast.success("Yükleme", "Avatar yükleme yakında eklenecek.")}
             >
               Avatar yükle
             </Button>
-            <p className="mt-1 text-[13px] text-[var(--text-secondary)]">PNG veya JPG, max 2MB</p>
+            <p className="mt-1 text-[13px] text-[var(--text-secondary)]">PNG veya JPG, en fazla 2 MB</p>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Ad Soyad" defaultValue={DEMO_USER.name} />
-          <Field label="E-posta" defaultValue={DEMO_USER.email} type="email" />
+          <ControlledField label="Ad Soyad" value={name} onChange={setName} />
+          <ControlledField label="E-posta" value={email} onChange={setEmail} type="email" />
         </div>
       </SettingsSectionCard>
       <SettingsSectionCard title="Organizasyon" description="Ajans ve ekip bilgileri">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Şirket / Ekip adı" defaultValue="Ajans Demo" />
-          <Field label="Web sitesi" defaultValue="ajansdemo.com.tr" />
+          <ControlledField label="Şirket / Ekip adı" value={companyName} onChange={setCompanyName} />
+          <ControlledField label="Web sitesi" value={website} onChange={setWebsite} />
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <PremiumSelect
             label="Saat dilimi"
             options={[...TIMEZONE_OPTIONS]}
-            value="eu-istanbul"
+            value={timezone}
+            onValueChange={(v) => v && setTimezone(v)}
           />
           <PremiumSelect
             label="Dil"
             options={[...LANGUAGE_OPTIONS]}
-            value="tr"
+            value={language}
+            onValueChange={(v) => v && setLanguage(v)}
           />
         </div>
       </SettingsSectionCard>
-      <SaveBar />
+      <SaveBar onSave={save} />
     </div>
   );
 }
@@ -135,14 +153,17 @@ function NotificationsPanel() {
       <SettingsSectionCard title="Kanallar">
         <ToggleRow label="Gerçek zamanlı bildirimler" description="Uygulama içi canlı toast" checked={prefs.realtime} onChange={(v) => set({ realtime: v })} bordered />
         <ToggleRow label="E-posta bildirimleri" description="Özet ve kritik raporlar" checked={prefs.email} onChange={(v) => set({ email: v })} bordered />
-        <ToggleRow label="Push bildirimleri" description="Tarayıcı push (yakında)" checked={prefs.push} onChange={(v) => set({ push: v })} />
+        <ToggleRow label="Anlık bildirimler (tarayıcı)" description="Tarayıcı bildirimi yakında" checked={prefs.push} onChange={(v) => set({ push: v })} />
       </SettingsSectionCard>
-      <SaveBar />
+      <p className="text-xs text-[var(--text-secondary)]">Değişiklikler anında kaydedilir.</p>
     </div>
   );
 }
 
 function AuditPanel() {
+  const audit = useAppStore((s) => s.settings.audit);
+  const updateSettings = useAppStore((s) => s.updateSettings);
+  const [depth, setDepth] = useState(audit.depth);
   const [web, setWeb] = useToggle(true);
   const [seo, setSeo] = useToggle(true);
   const [ads, setAds] = useToggle(true);
@@ -172,7 +193,8 @@ function AuditPanel() {
             { value: "deep", label: "Derin" },
             { value: "expert", label: "Uzman" },
           ]}
-          value="deep"
+          value={depth}
+          onValueChange={(v) => v && setDepth(v as typeof depth)}
         />
         <div className="mt-4 space-y-0">
           <ToggleRow label="Mobil kontroller" checked={mobile} onChange={setMobile} bordered />
@@ -181,14 +203,22 @@ function AuditPanel() {
           <ToggleRow label="Dönüşüm analizi" checked={conversion} onChange={setConversion} />
         </div>
       </SettingsSectionCard>
-      <SaveBar />
+      <SaveBar
+        onSave={() => {
+          void updateSettings({
+            audit: { ...audit, depth },
+          }).then(() => NexToast.success("Denetim ayarları kaydedildi"));
+        }}
+      />
     </div>
   );
 }
 
 function ScanPanel() {
-  const [auto, setAuto] = useToggle(true);
-  const [scheduled, setScheduled] = useToggle(true);
+  const audit = useAppStore((s) => s.settings.audit);
+  const updateSettings = useAppStore((s) => s.updateSettings);
+  const [auto, setAuto] = useState(audit.autoScan);
+  const [scheduled, setScheduled] = useState(audit.weeklyReport);
   const [recursive, setRecursive] = useToggle(true);
   const [screenshot, setScreenshot] = useToggle(false);
   const [lighthouse, setLighthouse] = useToggle(true);
@@ -212,7 +242,13 @@ function ScanPanel() {
         <ToggleRow label="Ekran görüntüsü analizi" checked={screenshot} onChange={setScreenshot} bordered />
         <ToggleRow label="Lighthouse modu" description="Performans metrikleri" checked={lighthouse} onChange={setLighthouse} />
       </SettingsSectionCard>
-      <SaveBar />
+      <SaveBar
+        onSave={() => {
+          void updateSettings({
+            audit: { ...audit, autoScan: auto, weeklyReport: scheduled },
+          }).then(() => NexToast.success("Tarama ayarları kaydedildi"));
+        }}
+      />
     </div>
   );
 }
@@ -315,6 +351,7 @@ function TeamPanel() {
         <Button
           type="button"
           className="btn-transition mt-4 h-9 rounded-lg bg-[var(--primary)] text-xs text-white hover:bg-[var(--primary-hover)]"
+          onClick={() => NexToast.success("Davet gönderildi", "Ekip üyesi daveti simüle edildi.")}
         >
           Üye davet et
         </Button>
@@ -373,7 +410,9 @@ function BriefPanel() {
           <Input type="number" defaultValue="2" className={cn(settingsInputClass, "sm:max-w-[100px]")} />
         </SettingsRow>
       </SettingsSectionCard>
-      <SaveBar />
+      <SaveBar
+        onSave={() => NexToast.success("Brief ayarları kaydedildi", "Tercihler uygulandı.")}
+      />
     </div>
   );
 }
@@ -406,7 +445,9 @@ function AiPanel() {
           <ToggleRow label="Ton analizi" checked={tone} onChange={setTone} />
         </div>
       </SettingsSectionCard>
-      <SaveBar />
+      <SaveBar
+        onSave={() => NexToast.success("Yapay zeka ayarları kaydedildi", "Tercihler uygulandı.")}
+      />
     </div>
   );
 }
@@ -416,6 +457,7 @@ function DangerPanel() {
   const deleteProject = useAppStore((s) => s.deleteProject);
   const archiveProject = useAppStore((s) => s.archiveProject);
   const resetDatabase = useAppStore((s) => s.resetDatabase);
+  const clearReportHistory = useAppStore((s) => s.clearReportHistory);
 
   return (
     <div className="settings-panel space-y-4">
@@ -459,7 +501,7 @@ function DangerPanel() {
       <SettingsSectionCard title="Veri sıfırlama" danger>
         <DangerRow
           label="Tüm verileri sıfırla"
-          description="Mock veritabanını varsayılan haline döndürür"
+          description="Tüm yerel verileri varsayılan demo haline döndürür"
           actionLabel="Veritabanını sıfırla"
           variant="outline"
           onAction={() => {
@@ -475,6 +517,13 @@ function DangerPanel() {
           actionLabel="Analitiği sıfırla"
           variant="outline"
           bordered
+          onAction={() => {
+            if (window.confirm(`${activeProject.name} rapor geçmişi silinsin mi?`)) {
+              void clearReportHistory(activeProject.id).then(() =>
+                NexToast.success("Rapor geçmişi temizlendi"),
+              );
+            }
+          }}
         />
       </SettingsSectionCard>
       <SettingsSectionCard title="Hesap" danger>
@@ -482,6 +531,12 @@ function DangerPanel() {
           label="Hesabı sil"
           description="Tüm projeler, ekip ve ayarlar kalıcı olarak silinir"
           actionLabel="Hesabı sil"
+          onAction={() => {
+            if (window.confirm("Hesap silme simülasyonu — tüm veriler sıfırlansın mı?")) {
+              resetDatabase();
+              NexToast.success("Hesap sıfırlandı", "Yerel veriler temizlendi.");
+            }
+          }}
         />
       </SettingsSectionCard>
     </div>
@@ -525,12 +580,43 @@ function ToggleRow({
   );
 }
 
-function SaveBar() {
+function SaveBar({ onSave }: { onSave?: () => void }) {
   return (
     <div className="flex justify-end pt-1">
-      <Button className="btn-transition h-10 rounded-xl bg-[var(--primary)] px-5 text-sm font-medium hover:bg-[var(--primary-hover)]">
+      <Button
+        type="button"
+        onClick={
+          onSave ??
+          (() => NexToast.success("Ayarlar kaydedildi", "Tercihlerin güncellendi."))
+        }
+        className="btn-transition h-10 rounded-xl bg-[var(--primary)] px-5 text-sm font-medium hover:bg-[var(--primary-hover)]"
+      >
         Değişiklikleri kaydet
       </Button>
+    </div>
+  );
+}
+
+function ControlledField({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-[var(--text-primary)]">{label}</label>
+      <Input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={settingsInputClass}
+      />
     </div>
   );
 }
@@ -555,6 +641,7 @@ function DangerRow({
       <Button
         type="button"
         variant="outline"
+        disabled={!onAction}
         onClick={onAction}
         className={cn(
           "btn-transition h-9 rounded-lg text-xs font-medium",

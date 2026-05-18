@@ -20,7 +20,11 @@ export function usePhaseWorkflow(projectId: string, phaseId: AuditPhaseId) {
 
   const phaseState = project?.phases.find((p) => p.id === phaseId);
   const openCritical = issues.filter(
-    (i) => i.phase === phaseId && i.severity === "critical" && i.status !== "resolved",
+    (i) =>
+      i.phase === phaseId &&
+      i.severity === "critical" &&
+      i.status !== "resolved" &&
+      i.status !== "ignored",
   ).length;
   const briefItems = useAppStore((s) => s.briefItemsByProject[projectId] ?? []);
   const briefGaps = briefItems.filter((b) => b.status === "missing" || b.status === "critical").length;

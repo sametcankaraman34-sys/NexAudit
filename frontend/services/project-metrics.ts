@@ -12,7 +12,7 @@ function riskFromScore(score: number, critical: number): ProjectRiskLevel {
 
 /** Sorun listesinden proje metriklerini yeniden hesaplar */
 export function recalculateProjectMetrics(project: Project, issues: Issue[]): Project {
-  const open = issues.filter((i) => i.status !== "resolved");
+  const open = issues.filter((i) => i.status !== "resolved" && i.status !== "ignored");
   const breakdown: [number, number, number, number] = [0, 0, 0, 0];
 
   for (const issue of open) {

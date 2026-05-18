@@ -45,6 +45,8 @@ export function AuditWorkflowPanel({ projectId, phaseId, className }: AuditWorkf
     await wf.completePhase(force);
   };
 
+  const hasOpenWarnings = wf.openCritical > 0 || wf.briefGaps > 0;
+
   const tryComplete = () => {
     setDialogOpen(true);
   };
@@ -156,7 +158,7 @@ export function AuditWorkflowPanel({ projectId, phaseId, className }: AuditWorkf
 
           <button
             type="button"
-            disabled={phaseLocked || phaseDone || wf.isLoading}
+            disabled={phaseLocked || wf.isLoading}
             onClick={() => void wf.reopenPhase()}
             className="btn-transition inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-soft)]"
           >
@@ -212,7 +214,7 @@ export function AuditWorkflowPanel({ projectId, phaseId, className }: AuditWorkf
         criticalCount={wf.openCritical}
         briefGaps={wf.briefGaps}
         onCancel={() => setDialogOpen(false)}
-        onConfirm={() => void handleComplete(true)}
+        onConfirm={() => void handleComplete(hasOpenWarnings)}
       />
     </>
   );

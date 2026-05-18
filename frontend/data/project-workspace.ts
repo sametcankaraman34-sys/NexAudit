@@ -175,7 +175,7 @@ function countBreakdownFromIssues(issues: Issue[]): {
   breakdown: [number, number, number, number];
   totalOpen: number;
 } {
-  const open = issues.filter((i) => i.status !== "resolved");
+  const open = issues.filter((i) => i.status !== "resolved" && i.status !== "ignored");
   const breakdown: [number, number, number, number] = [0, 0, 0, 0];
   for (const issue of open) {
     if (issue.severity === "critical") breakdown[0]++;
@@ -306,19 +306,24 @@ function buildIssueDistribution(project: Project, issues: Issue[]): IssueDistrib
   ];
 }
 
-function buildBrief(project: Project): ProjectBriefData {
+function buildBrief(project: Project, briefItems: BriefItem[]): ProjectBriefData {
   const score = project.briefScore ?? 0;
   const label =
     score >= 85 ? "Mükemmel" : score >= 70 ? "İyi" : score >= 50 ? "Orta" : score > 0 ? "Geliştirilmeli" : "—";
+
+  const items =
+    briefItems.length > 0
+      ? briefItems
+      : [...mockBriefMet, ...mockBriefMissing, ...mockBriefPartial, ...mockBriefCritical];
 
   return {
     score,
     maxScore: 100,
     label,
-    met: mockBriefMet,
-    missing: mockBriefMissing,
-    partial: mockBriefPartial,
-    critical: mockBriefCritical,
+    met: items.filter((i) => i.status === "met"),
+    missing: items.filter((i) => i.status === "missing"),
+    partial: items.filter((i) => i.status === "partial"),
+    critical: items.filter((i) => i.status === "critical"),
   };
 }
 
@@ -386,8 +391,8 @@ function buildNotifications(project: Project): Notification[] {
   }));
 }
 
-function buildReportHistory(project: Project) {
-  const timeline = auditTimeline
+function buildReportHistory(project: Project, liveTimeline: AuditTimelineEntry[]) {
+  const seedTimeline = auditTimeline
     .filter((entry) => entry.projectName === "Ajans Demo Projesi")
     .map((entry) => ({
       ...entry,
@@ -398,20 +403,32 @@ function buildReportHistory(project: Project) {
       scoreSparkline: entry.scoreSparkline.map((v) => scaleScore(v, project)),
     }));
 
+  const timeline =
+    liveTimeline.length > 0
+      ? liveTimeline.map((entry) => ({
+          ...entry,
+          projectName: project.name,
+        }))
+      : project.status === "draft"
+        ? []
+        : seedTimeline;
+
+  const resolvedSum = timeline.reduce((sum, t) => sum + t.issuesResolved, 0);
+
   const overview: ReportHistoryOverview = {
     ...reportHistoryOverview,
     averageScore: project.overallScore || reportHistoryOverview.averageScore,
     scoreSparkline: project.scoreHistory.length
       ? project.scoreHistory
       : reportHistoryOverview.scoreSparkline,
-    lastAuditDate: project.updatedAt,
-    totalAudits: Math.max(3, timeline.length * 2),
-    issuesResolved: Math.max(0, project.totalIssues * 4),
+    lastAuditDate: timeline[0]?.date ?? project.updatedAt,
+    totalAudits: timeline.length,
+    issuesResolved: resolvedSum || Math.max(0, project.totalIssues * 2),
   };
 
   return {
     overview,
-    timeline: project.status === "draft" ? [] : timeline,
+    timeline,
     evolution: evolutionMetrics.map((m) => ({
       ...m,
       before: scaleScore(m.before, project),
@@ -468,16 +485,17 @@ function buildWebsiteAudit(project: Project) {
   };
 }
 
-function buildSeoAudit(project: Project) {
+function buildSeoAudit(project: Project, phaseIssues: Issue[]) {
   const seoPhase = project.phases.find((p) => p.id === "seo");
   const seoScore = seoPhase?.progress
     ? scaleScore(seoSummary.overallScore, project)
     : scaleScore(seoSummary.overallScore, project);
+  const intelligence = issuesToIntelligence(phaseIssues);
 
   return {
     summary: buildIntelligenceSummary(seoSummary, project, seoScore),
     categories: scaleCategories(seoCategories, project),
-    issues: seoIssues,
+    issues: intelligence.length > 0 ? intelligence : seoIssues,
     keywords: seoKeywords,
     contentFindings: seoContentFindings,
     performance: seoPerformanceFactors,
@@ -485,15 +503,16 @@ function buildSeoAudit(project: Project) {
   };
 }
 
-function buildAdsAudit(project: Project) {
+function buildAdsAudit(project: Project, phaseIssues: Issue[]) {
   const adsPhase = project.phases.find((p) => p.id === "ads");
   const adsScore = adsPhase?.progress
     ? scaleScore(adsSummary.overallScore, project)
     : scaleScore(adsSummary.overallScore, project);
+  const intelligence = issuesToIntelligence(phaseIssues);
 
   return {
     summary: buildIntelligenceSummary(adsSummary, project, adsScore),
-    issues: adsIssues,
+    issues: intelligence.length > 0 ? intelligence : adsIssues,
     metricFindings: adsMetricFindings,
     performance: adsPerformanceFactors,
     guidance: adsGuidance,
@@ -525,16 +544,25 @@ function issuesToIntelligence(issues: Issue[]): IntelligenceIssue[] {
 
 export function buildProjectWorkspace(
   project: Project,
-  live?: { issues?: Issue[]; notifications?: Notification[]; briefItems?: BriefItem[] },
+  live?: {
+    issues?: Issue[];
+    notifications?: Notification[];
+    briefItems?: BriefItem[];
+    reportHistory?: AuditTimelineEntry[];
+  },
 ): ProjectWorkspace {
   const issues = live?.issues ?? [];
   const briefItems = live?.briefItems ?? [];
   const notifications = live?.notifications ?? buildNotifications(project);
+  const reportTimeline = live?.reportHistory ?? [];
   const featuredIssues = (issues.length ? issues : mockFeaturedIssues).slice(0, 8);
   const displayProject = resolveDisplayProject(project, issues);
+  const websiteIssues = issues.filter((i) => i.phase === "website");
+  const seoIssuesLive = issues.filter((i) => i.phase === "seo");
+  const adsIssuesLive = issues.filter((i) => i.phase === "ads");
 
   const websiteAuditBase = buildWebsiteAudit(displayProject);
-  const intelligenceFromStore = issuesToIntelligence(issues);
+  const intelligenceFromStore = issuesToIntelligence(websiteIssues);
 
   return {
     project: displayProject,
@@ -545,10 +573,10 @@ export function buildProjectWorkspace(
       recommendations: mockRecommendations,
       featuredIssues,
     },
-    brief: buildBrief(displayProject),
+    brief: buildBrief(displayProject, briefItems),
     briefCompliance: buildBriefCompliance(displayProject, briefItems),
     notifications,
-    reportHistory: buildReportHistory(displayProject),
+    reportHistory: buildReportHistory(displayProject, reportTimeline),
     websiteAudit: {
       ...websiteAuditBase,
       intelligenceSummary: {
@@ -560,8 +588,8 @@ export function buildProjectWorkspace(
           ? intelligenceFromStore
           : websiteAuditBase.issues,
     },
-    seoAudit: buildSeoAudit(displayProject),
-    adsAudit: buildAdsAudit(displayProject),
+    seoAudit: buildSeoAudit(displayProject, seoIssuesLive),
+    adsAudit: buildAdsAudit(displayProject, adsIssuesLive),
   };
 }
 
@@ -574,6 +602,7 @@ export function getProjectWorkspaceFromDb(db: AppDatabase, projectId: string): P
     issues: db.issuesByProject[projectId] ?? [],
     notifications: db.notificationsByProject[projectId] ?? [],
     briefItems: db.briefItemsByProject[projectId] ?? [],
+    reportHistory: db.reportHistoryByProject[projectId] ?? [],
   });
 }
 

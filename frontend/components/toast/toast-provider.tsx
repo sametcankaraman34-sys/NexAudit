@@ -161,7 +161,7 @@ function ToastCard({
   const Icon = meta.icon;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remainingRef = useRef(toast.duration ?? DEFAULT_DURATION);
-  const startedRef = useRef(Date.now());
+  const startedRef = useRef(0);
   const pausedRef = useRef(false);
 
   const clearTimer = useCallback(() => {

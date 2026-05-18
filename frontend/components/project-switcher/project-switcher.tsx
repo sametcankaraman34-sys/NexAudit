@@ -28,16 +28,11 @@ function getPanelPosition(trigger: HTMLElement): PanelPosition {
 export function ProjectSwitcher() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [panelPos, setPanelPos] = useState<PanelPosition>({ top: 0, left: 0, width: 400 });
   const { activeProject, activeProjectId, projects, setActiveProjectId } =
     useActiveProject();
 
   const close = useCallback(() => setOpen(false), []);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const updatePosition = useCallback(() => {
     if (triggerRef.current) {
@@ -84,7 +79,7 @@ export function ProjectSwitcher() {
     close();
   };
 
-  const dropdown = open && mounted ? (
+  const dropdown = open ? (
     <>
       <div
         className="project-switcher-backdrop fixed inset-0 z-[200]"
@@ -186,7 +181,9 @@ export function ProjectSwitcher() {
         </button>
       </div>
 
-      {mounted && dropdown ? createPortal(dropdown, document.body) : null}
+      {typeof document !== "undefined" && dropdown
+        ? createPortal(dropdown, document.body)
+        : null}
     </>
   );
 }

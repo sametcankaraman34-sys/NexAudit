@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import {
   CompletionFeedback,
@@ -18,12 +18,6 @@ export function ProjectStatusModal() {
   const modal = useOutcomeFeedbackStore((s) => s.modal);
   const exiting = useOutcomeFeedbackStore((s) => s.modalExiting);
   const dismissModal = useOutcomeFeedbackStore((s) => s.dismissModal);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   useEffect(() => {
     if (!modal) return;
     const timer = window.setTimeout(() => dismissModal(), AUTO_DISMISS_MS);
@@ -48,7 +42,7 @@ export function ProjectStatusModal() {
     return () => window.removeEventListener("keydown", onKey);
   }, [modal, dismissModal]);
 
-  if (!mounted || !modal) return null;
+  if (!modal || typeof document === "undefined") return null;
 
   const copy = getOutcomePresentation(modal);
   const isSuccess = copy.tone === "success";

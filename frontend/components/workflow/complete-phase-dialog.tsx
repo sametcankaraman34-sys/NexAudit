@@ -24,19 +24,11 @@ export function CompletePhaseDialog({
   onCancel,
 }: CompletePhaseDialogProps) {
   const [confirming, setConfirming] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const hasWarnings = !blocked && (criticalCount > 0 || briefGaps > 0);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!open) {
-      setConfirming(false);
-      return;
-    }
+    if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -53,7 +45,7 @@ export function CompletePhaseDialog({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onCancel]);
 
-  if (!mounted || !open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const content = (
     <div
@@ -143,19 +135,22 @@ export function CompletePhaseDialog({
             <>
               <button
                 type="button"
-                onClick={onCancel}
-                className="btn-transition rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-soft)]"
-              >
-                Vazgeç
-              </button>
-              <button
-                type="button"
-                disabled={confirming}
-                onClick={() => {
-                  setConfirming(true);
-                  onCancel();
-                  onConfirm();
-                }}
+            onClick={() => {
+              setConfirming(false);
+              onCancel();
+            }}
+            className="btn-transition rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-soft)]"
+          >
+            Vazgeç
+          </button>
+          <button
+            type="button"
+            disabled={confirming}
+            onClick={() => {
+              setConfirming(true);
+              onCancel();
+              onConfirm();
+            }}
                 className={cn(
                   "phase-cta-success rounded-xl bg-[var(--success)] px-4 py-2.5 text-sm font-medium text-white",
                   confirming && "opacity-70",
