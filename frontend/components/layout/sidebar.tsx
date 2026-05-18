@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { DEMO_USER, NAV_GROUPS } from "@/constants/navigation";
+import { NAV_GROUPS } from "@/constants/navigation";
+import { useProfileStore } from "@/stores/profile-store";
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -13,6 +14,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const { profile, initials } = useProfileStore();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -91,16 +93,20 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
             collapsed && "justify-center p-2",
           )}
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--primary-soft)] text-sm font-semibold text-[var(--primary)]">
-            {DEMO_USER.initials}
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--primary-soft)] text-sm font-semibold text-[var(--primary)]">
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              initials
+            )}
           </div>
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-[15px] font-medium text-[var(--text-primary)]">
-                {DEMO_USER.name}
+                {profile.name}
               </p>
               <p className="truncate text-ui-secondary text-[var(--text-secondary)]">
-                {DEMO_USER.email}
+                {profile.email}
               </p>
             </div>
           )}

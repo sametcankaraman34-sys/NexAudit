@@ -7,12 +7,13 @@ import { RecommendationCard } from "@/components/cards/recommendation-card";
 import { StatCard } from "@/components/cards/stat-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { IssueList } from "@/components/tables/issue-list";
-import { DEMO_USER } from "@/constants/navigation";
+import { useProfile } from "@/stores/profile-store";
 import { ActivityTimeline } from "@/components/workflow/activity-timeline";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 import { useAppStore } from "@/stores/app-store";
 
 export function DashboardView() {
+  const profile = useProfile();
   const { activeProjectId } = useActiveProject();
   const { dashboard } = useProjectWorkspace();
   const activities = useAppStore((s) => s.activityByProject[activeProjectId] ?? []);
@@ -22,7 +23,7 @@ export function DashboardView() {
     <div className="space-y-4">
       <PageHeader
         title="Kontrol Paneli"
-        greeting={`Merhaba, ${DEMO_USER.name}! 👋`}
+        greeting={`Merhaba, ${profile.name}! 👋`}
         description="Sıradaki adımı birlikte bulalım — skor, sorunlar ve iyileştirme fırsatları burada."
         compact
       />

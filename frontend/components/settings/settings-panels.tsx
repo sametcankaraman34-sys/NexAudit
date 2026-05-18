@@ -23,14 +23,16 @@ import { SettingsToggle } from "@/components/settings/settings-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PremiumSelect } from "@/components/ui/premium-select";
-import { DEMO_USER } from "@/constants/navigation";
+import { AvatarUploader } from "@/components/settings/avatar-uploader";
+import { PROFILE_ROLE_OPTIONS, updateProfile } from "@/services/profile.service";
+import { useProfile } from "@/stores/profile-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from "@/constants/ui-tr";
 import type { SettingsSectionId } from "@/data/mock-settings";
 import {
   clearReportHistoryWithFeedback,
   inviteTeamMember,
   resetDatabaseWithFeedback,
-  saveProfileSettings,
   saveProjectAuditSettings,
   toggleIntegrationWithFeedback,
   updateTeamMemberRole,
@@ -41,11 +43,6 @@ import { useActiveProject } from "@/lib/project-context";
 import { useAppStore } from "@/stores/app-store";
 import { cn } from "@/lib/utils";
 import type { TeamMemberRole } from "@/types/app-database";
-
-function useToggle(initial: boolean) {
-  const [value, setValue] = useState(initial);
-  return [value, setValue] as const;
-}
 
 export function SettingsPanel({ section }: { section: SettingsSectionId }) {
   switch (section) {
@@ -73,17 +70,26 @@ export function SettingsPanel({ section }: { section: SettingsSectionId }) {
 }
 
 function ProfilePanel() {
-  const profile = useAppStore((s) => s.settings.profile);
+  const profile = useProfile();
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
   const [companyName, setCompanyName] = useState(profile.companyName);
+  const [role, setRole] = useState(profile.role);
   const [website, setWebsite] = useState(profile.website);
   const [timezone, setTimezone] = useState(profile.timezone);
   const [language, setLanguage] = useState(profile.language);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatarUrl);
 
   const save = () => {
-    void saveProfileSettings({
-      profile: { name, email, companyName, website, timezone, language },
+    void updateProfile({
+      name,
+      email,
+      companyName,
+      role,
+      website,
+      timezone,
+      language,
+      avatarUrl,
     });
   };
 
@@ -95,22 +101,7 @@ function ProfilePanel() {
         description="Hesap, ekip kimliği ve bölgesel tercihler"
       />
       <SettingsSectionCard title="Profil" description="Kişisel bilgileriniz">
-        <div className="mb-5 flex items-center gap-4">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--primary-soft)] text-lg font-semibold text-[var(--primary)]">
-            {DEMO_USER.initials}
-          </span>
-          <div>
-            <Button
-              type="button"
-              variant="outline"
-              className="btn-transition h-9 rounded-lg border-[var(--border)] text-xs"
-              onClick={() => NotificationService.info("Yükleme", "Avatar yükleme yakında eklenecek.")}
-            >
-              Avatar yükle
-            </Button>
-            <p className="mt-1 text-[13px] text-[var(--text-secondary)]">PNG veya JPG, en fazla 2 MB</p>
-          </div>
-        </div>
+        <AvatarUploader name={name} avatarUrl={avatarUrl} onAvatarChange={setAvatarUrl} />
         <div className="grid gap-4 sm:grid-cols-2">
           <ControlledField label="Ad Soyad" value={name} onChange={setName} />
           <ControlledField label="E-posta" value={email} onChange={setEmail} type="email" />
@@ -118,7 +109,13 @@ function ProfilePanel() {
       </SettingsSectionCard>
       <SettingsSectionCard title="Organizasyon" description="Ajans ve ekip bilgileri">
         <div className="grid gap-4 sm:grid-cols-2">
-          <ControlledField label="Şirket / Ekip adı" value={companyName} onChange={setCompanyName} />
+          <ControlledField label="Şirket / Ajans adı" value={companyName} onChange={setCompanyName} />
+          <PremiumSelect
+            label="Rol"
+            options={PROFILE_ROLE_OPTIONS}
+            value={role}
+            onValueChange={(v) => v && setRole(v as typeof role)}
+          />
           <ControlledField label="Web sitesi" value={website} onChange={setWebsite} />
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -461,7 +458,7 @@ function TeamPanel() {
 }
 
 function BriefPanel() {
-  const [strict, setStrict] = useToggle(false);
+  const { brief, updateBrief } = useSettingsStore();
 
   return (
     <div className="settings-panel space-y-4">
@@ -478,36 +475,43 @@ function BriefPanel() {
             { value: "balanced", label: "Dengeli" },
             { value: "strict", label: "Katı" },
           ]}
-          value="balanced"
+          value={brief.sensitivity}
+          onValueChange={(v) => v && updateBrief({ sensitivity: v as typeof brief.sensitivity })}
         />
         <div className="mt-4">
           <ToggleRow
             label="Zorunlu brief alanları"
             description="Eksik alanlarda uyarı üret"
-            checked={strict}
-            onChange={setStrict}
+            checked={brief.strictFields}
+            onChange={(v) => updateBrief({ strictFields: v })}
           />
         </div>
       </SettingsSectionCard>
       <SettingsSectionCard title="Tolerans eşikleri">
         <SettingsRow label="Renk sapma eşiği" description="Brief paleti toleransı (%)">
-          <Input type="number" defaultValue="15" className={cn(settingsInputClass, "sm:max-w-[100px]")} />
+          <Input
+            type="number"
+            value={brief.colorTolerance}
+            onChange={(e) => updateBrief({ colorTolerance: Number(e.target.value) || 0 })}
+            className={cn(settingsInputClass, "sm:max-w-[100px]")}
+          />
         </SettingsRow>
         <SettingsRow label="Tipografi toleransı" description="Punto farkı (px)" bordered>
-          <Input type="number" defaultValue="2" className={cn(settingsInputClass, "sm:max-w-[100px]")} />
+          <Input
+            type="number"
+            value={brief.typographyTolerance}
+            onChange={(e) => updateBrief({ typographyTolerance: Number(e.target.value) || 0 })}
+            className={cn(settingsInputClass, "sm:max-w-[100px]")}
+          />
         </SettingsRow>
       </SettingsSectionCard>
-      <SaveBar
-        onSave={() => NotificationService.success("Brief ayarları kaydedildi", "Tercihler uygulandı.")}
-      />
+      <p className="text-xs text-[var(--text-secondary)]">Değişiklikler anında kaydedilir.</p>
     </div>
   );
 }
 
 function AiPanel() {
-  const [autoSuggest, setAutoSuggest] = useToggle(true);
-  const [content, setContent] = useToggle(true);
-  const [tone, setTone] = useToggle(true);
+  const { ai, updateAi } = useSettingsStore();
 
   return (
     <div className="settings-panel space-y-4">
@@ -524,17 +528,30 @@ function AiPanel() {
             { value: "medium", label: "Orta" },
             { value: "high", label: "Yüksek" },
           ]}
-          value="medium"
+          value={ai.density}
+          onValueChange={(v) => v && updateAi({ density: v as typeof ai.density })}
         />
         <div className="mt-4 space-y-0">
-          <ToggleRow label="Otomatik öneriler" checked={autoSuggest} onChange={setAutoSuggest} bordered />
-          <ToggleRow label="Yapay zeka içerik analizi" checked={content} onChange={setContent} bordered />
-          <ToggleRow label="Ton analizi" checked={tone} onChange={setTone} />
+          <ToggleRow
+            label="Otomatik öneriler"
+            checked={ai.autoSuggest}
+            onChange={(v) => updateAi({ autoSuggest: v })}
+            bordered
+          />
+          <ToggleRow
+            label="Yapay zeka içerik analizi"
+            checked={ai.contentAnalysis}
+            onChange={(v) => updateAi({ contentAnalysis: v })}
+            bordered
+          />
+          <ToggleRow
+            label="Ton analizi"
+            checked={ai.toneAnalysis}
+            onChange={(v) => updateAi({ toneAnalysis: v })}
+          />
         </div>
       </SettingsSectionCard>
-      <SaveBar
-        onSave={() => NotificationService.success("Yapay zeka ayarları kaydedildi", "Tercihler uygulandı.")}
-      />
+      <p className="text-xs text-[var(--text-secondary)]">Değişiklikler anında kaydedilir.</p>
     </div>
   );
 }

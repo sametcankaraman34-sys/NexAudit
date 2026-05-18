@@ -29,8 +29,10 @@ import type {
   ProjectAuditSettings,
   TeamMemberRecord,
   TeamMemberRole,
+  UserProfile,
 } from "@/types/app-database";
-import { DEMO_USER } from "@/constants/navigation";
+import { getProfile } from "@/services/profile.service";
+import { createDefaultProfile } from "@/services/profile.service";
 import { NotificationService } from "@/services/notification-service";
 import {
   createProjectAuditSettings,
@@ -226,7 +228,7 @@ export const useAppStore = create<AppStore>()(
               ...existing,
               ...patch,
               updatedAt: new Date().toISOString().slice(0, 10),
-              lastActor: DEMO_USER.name,
+              lastActor: getProfile().name,
               lastActivity: patch.lastActivity ?? "Proje bilgileri güncellendi",
             };
             return {
@@ -297,7 +299,7 @@ export const useAppStore = create<AppStore>()(
                     ...p,
                     status: "archived" as const,
                     lastActivity: "Proje arşive taşındı",
-                    lastActor: DEMO_USER.name,
+                    lastActor: getProfile().name,
                     updatedAt: new Date().toISOString().slice(0, 10),
                   }
                 : p,
@@ -695,6 +697,10 @@ export const useAppStore = create<AppStore>()(
               profile: { ...state.settings.profile, ...patch.profile },
               notifications: { ...state.settings.notifications, ...patch.notifications },
               audit: { ...state.settings.audit, ...patch.audit },
+              brief: patch.brief
+                ? { ...state.settings.brief, ...patch.brief }
+                : state.settings.brief,
+              ai: patch.ai ? { ...state.settings.ai, ...patch.ai } : state.settings.ai,
               team: patch.team ?? state.settings.team,
               integrations: patch.integrations ?? state.settings.integrations,
             },
@@ -815,6 +821,26 @@ export const useAppStore = create<AppStore>()(
         if (!merged.auditSettingsByProject) {
           merged.auditSettingsByProject = {};
         }
+        const legacyProfile = merged.settings?.profile as unknown as
+          | Record<string, unknown>
+          | undefined;
+        merged.settings = {
+          ...base.settings,
+          ...merged.settings,
+          profile: createDefaultProfile({
+            id: (legacyProfile?.id as string) ?? "u1",
+            name: (legacyProfile?.name as string) ?? base.settings.profile.name,
+            email: (legacyProfile?.email as string) ?? base.settings.profile.email,
+            avatarUrl: (legacyProfile?.avatarUrl as string | null) ?? null,
+            companyName: (legacyProfile?.companyName as string) ?? base.settings.profile.companyName,
+            role: (legacyProfile?.role as UserProfile["role"]) ?? "owner",
+            website: (legacyProfile?.website as string) ?? base.settings.profile.website,
+            timezone: (legacyProfile?.timezone as string) ?? base.settings.profile.timezone,
+            language: (legacyProfile?.language as string) ?? base.settings.profile.language,
+          }),
+          brief: { ...base.settings.brief, ...merged.settings?.brief },
+          ai: { ...base.settings.ai, ...merged.settings?.ai },
+        };
         for (const p of merged.projects) {
           if (!merged.workflowByProject[p.id]) {
             merged.workflowByProject[p.id] = createProjectWorkflow(p.phases);

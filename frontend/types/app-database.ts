@@ -1,6 +1,9 @@
 import type { AuditTimelineEntry } from "@/data/mock-report-history";
 import type { BriefItem, Issue, Notification, Project } from "@/types";
+import type { UserProfile } from "@/types/profile.types";
 import type { ActivityEvent, ProjectWorkflowMap } from "@/types/workflow";
+
+export type { UserProfile } from "@/types/profile.types";
 
 export interface IntegrationRecord {
   id: string;
@@ -17,7 +20,7 @@ export interface TeamMemberRecord {
   initials: string;
 }
 
-export const APP_DB_VERSION = 4;
+export const APP_DB_VERSION = 5;
 export const STORAGE_KEY = "nexaudit-app-db";
 
 export interface NotificationPreferences {
@@ -29,13 +32,23 @@ export interface NotificationPreferences {
   push: boolean;
 }
 
-export interface ProfileSettings {
-  name: string;
-  email: string;
-  companyName: string;
-  website: string;
-  timezone: string;
-  language: string;
+/** @deprecated Use UserProfile from profile.types */
+export type ProfileSettings = UserProfile;
+
+export type BriefSensitivity = "relaxed" | "balanced" | "strict";
+
+export interface BriefAppSettings {
+  sensitivity: BriefSensitivity;
+  strictFields: boolean;
+  colorTolerance: number;
+  typographyTolerance: number;
+}
+
+export interface AiAppSettings {
+  density: "low" | "medium" | "high";
+  autoSuggest: boolean;
+  contentAnalysis: boolean;
+  toneAnalysis: boolean;
 }
 
 export type AuditDepth = "standard" | "deep" | "expert";
@@ -72,9 +85,11 @@ export interface ProjectAuditSettings {
 export type TeamMemberRole = "owner" | "admin" | "editor" | "viewer";
 
 export interface AppSettings {
-  profile: ProfileSettings;
+  profile: UserProfile;
   notifications: NotificationPreferences;
   audit: AuditSettings;
+  brief: BriefAppSettings;
+  ai: AiAppSettings;
   integrations: IntegrationRecord[];
   team: TeamMemberRecord[];
 }

@@ -16,7 +16,7 @@ import { useState } from "react";
 import { ProjectDeleteDialog } from "@/components/projects/project-delete-dialog";
 import { ProjectEditDialog } from "@/components/projects/project-edit-dialog";
 import { AUDIT_PHASE_ORDER, AUDIT_PHASE_SHORT_LABELS } from "@/constants/audit";
-import { DEMO_USER } from "@/constants/navigation";
+import { useProfile } from "@/stores/profile-store";
 import { useActiveProject } from "@/lib/project-context";
 import {
   getProjectOperationalStatus,
@@ -106,7 +106,8 @@ export function ProjectWorkspaceCard({
     (i) => i.status !== "resolved" && i.status !== "ignored",
   ).length;
   const resolvedIssues = issues.filter((i) => i.status === "resolved").length;
-  const lastActor = project.lastActor ?? DEMO_USER.name;
+  const profileName = useProfile().name;
+  const lastActor = project.lastActor ?? profileName;
   const latestActivity = activities[0]?.message ?? project.lastActivity;
 
   const chartId = `proj-chart-${project.id}`;

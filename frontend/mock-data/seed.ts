@@ -8,7 +8,7 @@ import { mockFeaturedIssues, mockWebsiteIssues } from "@/data/mock-issues";
 import { mockNotifications } from "@/data/mock-notifications";
 import { mockProjects } from "@/data/mock-projects";
 import { mockIntegrations, mockTeamMembers } from "@/data/mock-settings";
-import { DEMO_USER } from "@/constants/navigation";
+import { createDefaultProfile } from "@/services/profile.service";
 import { createProjectAuditSettings } from "@/services/default-audit-settings";
 import { createProjectWorkflow } from "@/services/workflow-factory";
 import { APP_DB_VERSION, type AppDatabase, type AppSettings } from "@/types/app-database";
@@ -49,13 +49,18 @@ function defaultBriefItems(): BriefItem[] {
 
 function defaultSettings(): AppSettings {
   return {
-    profile: {
-      name: DEMO_USER.name,
-      email: DEMO_USER.email,
-      companyName: "Ajans Demo",
-      website: "ajansdemo.com.tr",
-      timezone: "eu-istanbul",
-      language: "tr",
+    profile: createDefaultProfile(),
+    brief: {
+      sensitivity: "balanced",
+      strictFields: false,
+      colorTolerance: 15,
+      typographyTolerance: 2,
+    },
+    ai: {
+      density: "medium",
+      autoSuggest: true,
+      contentAnalysis: true,
+      toneAnalysis: true,
     },
     notifications: {
       critical: true,

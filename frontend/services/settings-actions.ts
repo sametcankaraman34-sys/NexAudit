@@ -12,12 +12,7 @@ export async function saveProjectAuditSettings(
   NotificationService.success(successMessage, undefined, projectId);
 }
 
-export async function saveProfileSettings(
-  patch: Parameters<ReturnType<typeof useAppStore.getState>["updateSettings"]>[0],
-) {
-  await useAppStore.getState().updateSettings(patch);
-  NotificationService.success("Ayarlar kaydedildi", "Profil bilgilerin güncellendi.");
-}
+export { updateProfile as saveProfileSettings } from "@/services/profile.service";
 
 export async function updateTeamMemberRole(memberId: string, role: TeamMemberRole) {
   await useAppStore.getState().updateTeamMember(memberId, { role });
