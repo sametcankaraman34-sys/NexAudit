@@ -1,27 +1,25 @@
+import { notify } from "@/services/notification-service";
 import type { ToastInput } from "@/types/toast";
 
-type PushFn = (input: ToastInput) => string;
+export { registerNotificationToast as registerToastPush } from "@/services/notification-service";
 
-let pushToast: PushFn | null = null;
-
-export function registerToastPush(fn: PushFn) {
-  pushToast = fn;
-  return () => {
-    if (pushToast === fn) pushToast = null;
-  };
-}
-
-/** Imperative toast API — works outside React components */
+/** @deprecated Doğrudan toast yerine NotificationService veya notify kullanın */
 export function toast(input: ToastInput): string | undefined {
-  return pushToast?.(input);
+  return notify({
+    variant: input.variant,
+    title: input.title,
+    description: input.description,
+    duration: input.duration,
+    action: input.action,
+  });
 }
 
 export const NexToast = {
   success(title: string, description?: string) {
-    return toast({ variant: "success", title, description });
+    return notify({ variant: "success", title, description });
   },
   projectCreated(projectName: string) {
-    return toast({
+    return notify({
       variant: "success",
       title: "Yeni proje oluşturuldu ✨",
       description: `${projectName} eklendi — ilk taramayı başlatabilirsin.`,
@@ -29,7 +27,7 @@ export const NexToast = {
     });
   },
   auditCompleted(phaseLabel: string, score?: number) {
-    return toast({
+    return notify({
       variant: "success",
       title: "Tur tamam",
       description:
@@ -40,32 +38,35 @@ export const NexToast = {
     });
   },
   criticalIssue(message: string) {
-    return toast({
+    return notify({
       variant: "critical",
       title: "Kritik bulgu",
       description: message,
       duration: 7000,
+      category: "critical",
       action: { label: "Denetime git", href: "/website-audit" },
     });
   },
   seoUnlocked() {
-    return toast({
+    return notify({
       variant: "info",
       title: "SEO tarafı açıldı",
       description: "Web tasarım turu bitti — SEO analizine geçebiliriz.",
+      category: "seo",
       action: { label: "SEO'ya geç", href: "/seo-audit" },
     });
   },
   briefScoreUpdated(score: number) {
-    return toast({
+    return notify({
       variant: "info",
       title: "Brief skoru güncellendi",
       description: `Brief uyumu ${score}/100 — sapmaları birlikte toparlayalım.`,
+      category: "brief",
       action: { label: "Karşılaştır", href: "/brief" },
     });
   },
   conversionIssue(message: string) {
-    return toast({
+    return notify({
       variant: "warning",
       title: "Dönüşüm sinyali",
       description: message,
@@ -73,7 +74,7 @@ export const NexToast = {
     });
   },
   scanStarted(projectName?: string) {
-    return toast({
+    return notify({
       variant: "info",
       title: "Tarama başladı",
       description: projectName
@@ -81,12 +82,8 @@ export const NexToast = {
         : "Canlı denetim motoru devrede.",
     });
   },
-  auditStarted(
-    phaseLabel: string,
-    href?: string,
-    projectName?: string,
-  ) {
-    return toast({
+  auditStarted(phaseLabel: string, href?: string, projectName?: string) {
+    return notify({
       variant: "info",
       title: "Denetim devrede",
       description: projectName

@@ -1,5 +1,5 @@
 import { SCAN_STEPS } from "@/constants/workflow";
-import { NexToast } from "@/lib/nex-toast";
+import { NotificationService } from "@/services/notification-service";
 import { buildScanCompletedNotification } from "@/lib/workflow-notify";
 import { applyScanResultsToProject } from "@/services/scan-results";
 import { createScanReportEntry } from "@/services/report-history";
@@ -200,5 +200,9 @@ export async function runPhaseScan(
     })(),
   }));
 
-  NexToast.auditCompleted(phaseLabelToast, updatedProject.overallScore);
+  NotificationService.success(
+    "Tur tamam",
+    `${phaseLabelToast} bitti · skor ${updatedProject.overallScore}/100`,
+    projectId,
+  );
 }

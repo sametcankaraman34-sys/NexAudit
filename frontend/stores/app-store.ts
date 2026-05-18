@@ -26,13 +26,16 @@ import type {
   AppSettings,
   AsyncState,
   CreateProjectInput,
+  ProjectAuditSettings,
+  TeamMemberRecord,
+  TeamMemberRole,
 } from "@/types/app-database";
 import { DEMO_USER } from "@/constants/navigation";
-import { NexToast } from "@/lib/nex-toast";
+import { NotificationService } from "@/services/notification-service";
 import {
-  buildProjectArchivedNotification,
-  buildProjectUpdatedNotification,
-} from "@/lib/project-notifications";
+  createProjectAuditSettings,
+  DEFAULT_PROJECT_AUDIT_SETTINGS,
+} from "@/services/default-audit-settings";
 import type { BriefItem, BriefItemStatus, Issue, IssueStatus, Notification, Project } from "@/types";
 
 export interface AppStore extends AppDatabase {
@@ -69,6 +72,12 @@ export interface AppStore extends AppDatabase {
     patch: Partial<BriefItem>,
   ) => Promise<void>;
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
+  updateProjectAuditSettings: (
+    projectId: string,
+    patch: Partial<ProjectAuditSettings>,
+  ) => Promise<void>;
+  updateTeamMember: (memberId: string, patch: Partial<TeamMemberRecord>) => Promise<void>;
+  inviteTeamMember: (input: { email: string; role: TeamMemberRole }) => Promise<void>;
   toggleIntegration: (integrationId: string) => Promise<void>;
   resetDatabase: () => void;
   clearReportHistory: (projectId: string) => Promise<void>;
@@ -188,6 +197,17 @@ export const useAppStore = create<AppStore>()(
               ...state.reportHistoryByProject,
               [id]: [],
             },
+            auditSettingsByProject: {
+              ...state.auditSettingsByProject,
+              [id]: createProjectAuditSettings({
+                depth: state.settings.audit.depth,
+                scan: {
+                  ...DEFAULT_PROJECT_AUDIT_SETTINGS.scan,
+                  autoScan: state.settings.audit.autoScan,
+                  weeklyReport: state.settings.audit.weeklyReport,
+                },
+              }),
+            },
             activeProjectId: id,
             async: { isLoading: false, lastAction: "createProject" },
           }));
@@ -222,8 +242,7 @@ export const useAppStore = create<AppStore>()(
             };
           });
         });
-        get().addNotification(id, buildProjectUpdatedNotification(existing.name));
-        NexToast.success("Proje güncellendi", existing.name);
+        NotificationService.success("Proje güncellendi", existing.name, id);
       },
 
       deleteProject: async (id) => {
@@ -231,12 +250,20 @@ export const useAppStore = create<AppStore>()(
         await withMockApi(() => {
           set((state) => {
             const projects = state.projects.filter((p) => p.id !== id);
-            const { [id]: _i, ...issuesByProject } = state.issuesByProject;
-            const { [id]: _n, ...notificationsByProject } = state.notificationsByProject;
-            const { [id]: _b, ...briefItemsByProject } = state.briefItemsByProject;
-            const { [id]: _w, ...workflowByProject } = state.workflowByProject;
-            const { [id]: _a, ...activityByProject } = state.activityByProject;
-            const { [id]: _r, ...reportHistoryByProject } = state.reportHistoryByProject;
+            const issuesByProject = { ...state.issuesByProject };
+            const notificationsByProject = { ...state.notificationsByProject };
+            const briefItemsByProject = { ...state.briefItemsByProject };
+            const workflowByProject = { ...state.workflowByProject };
+            const activityByProject = { ...state.activityByProject };
+            const reportHistoryByProject = { ...state.reportHistoryByProject };
+            const auditSettingsByProject = { ...state.auditSettingsByProject };
+            delete issuesByProject[id];
+            delete notificationsByProject[id];
+            delete briefItemsByProject[id];
+            delete workflowByProject[id];
+            delete activityByProject[id];
+            delete reportHistoryByProject[id];
+            delete auditSettingsByProject[id];
             const activeProjectId =
               state.activeProjectId === id
                 ? (projects[0]?.id ?? DEFAULT_PROJECT_ID)
@@ -249,12 +276,13 @@ export const useAppStore = create<AppStore>()(
               workflowByProject,
               activityByProject,
               reportHistoryByProject,
+              auditSettingsByProject,
               activeProjectId,
               async: { isLoading: false, lastAction: "deleteProject" },
             };
           });
         });
-        NexToast.success("Proje silindi.");
+        NotificationService.success("Proje silindi.");
       },
 
       archiveProject: async (id) => {
@@ -284,8 +312,7 @@ export const useAppStore = create<AppStore>()(
             async: { isLoading: false, lastAction: "archiveProject" },
           }));
         });
-        get().addNotification(id, buildProjectArchivedNotification(project.name));
-        NexToast.success("Proje arşive taşındı.");
+        NotificationService.success("Proje arşive taşındı.", project.name, id);
       },
 
       startPhaseScan: async (projectId, phaseId) => {
@@ -487,7 +514,11 @@ export const useAppStore = create<AppStore>()(
               ),
             },
           }));
-          NexToast.success("Aşama yeniden açıldı", `${phaseLabel} turu tekrar düzenlenebilir.`);
+          NotificationService.success(
+            "Aşama yeniden açıldı",
+            `${phaseLabel} turu tekrar düzenlenebilir.`,
+            projectId,
+          );
         }, { delayMs: 240 });
       },
 
@@ -664,10 +695,69 @@ export const useAppStore = create<AppStore>()(
               profile: { ...state.settings.profile, ...patch.profile },
               notifications: { ...state.settings.notifications, ...patch.notifications },
               audit: { ...state.settings.audit, ...patch.audit },
+              team: patch.team ?? state.settings.team,
+              integrations: patch.integrations ?? state.settings.integrations,
             },
             async: { isLoading: false, lastAction: "updateSettings" },
           }));
         });
+      },
+
+      updateProjectAuditSettings: async (projectId, patch) => {
+        await withMockApi(() => {
+          set((state) => {
+            const current =
+              state.auditSettingsByProject[projectId] ?? createProjectAuditSettings();
+            return {
+              auditSettingsByProject: {
+                ...state.auditSettingsByProject,
+                [projectId]: {
+                  ...current,
+                  ...patch,
+                  modules: { ...current.modules, ...patch.modules },
+                  checks: { ...current.checks, ...patch.checks },
+                  scan: { ...current.scan, ...patch.scan },
+                },
+              },
+            };
+          });
+        }, { delayMs: 120 });
+      },
+
+      updateTeamMember: async (memberId, patch) => {
+        await withMockApi(() => {
+          set((state) => ({
+            settings: {
+              ...state.settings,
+              team: state.settings.team.map((member) =>
+                member.id === memberId ? { ...member, ...patch } : member,
+              ),
+            },
+          }));
+        }, { delayMs: 120 });
+      },
+
+      inviteTeamMember: async ({ email, role }) => {
+        const name = email.split("@")[0] ?? "Yeni üye";
+        const initials = name.slice(0, 2).toUpperCase();
+        await withMockApi(() => {
+          set((state) => ({
+            settings: {
+              ...state.settings,
+              team: [
+                ...state.settings.team,
+                {
+                  id: generateId("u"),
+                  name,
+                  email,
+                  role,
+                  initials,
+                },
+              ],
+            },
+          }));
+        }, { delayMs: 200 });
+        NotificationService.success("Davet gönderildi", `${email} ekibe eklendi.`);
       },
 
       toggleIntegration: async (integrationId) => {
@@ -699,7 +789,15 @@ export const useAppStore = create<AppStore>()(
       name: "nexaudit-app-db",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => {
-        const { hydrated, async, isSwitching, ...db } = state;
+        const {
+          hydrated: _hydrated,
+          async: _asyncState,
+          isSwitching: _isSwitching,
+          ...db
+        } = state;
+        void _hydrated;
+        void _asyncState;
+        void _isSwitching;
         return db;
       },
       onRehydrateStorage: () => (state) => {
@@ -714,6 +812,9 @@ export const useAppStore = create<AppStore>()(
         if (!merged.reportHistoryByProject) {
           merged.reportHistoryByProject = {};
         }
+        if (!merged.auditSettingsByProject) {
+          merged.auditSettingsByProject = {};
+        }
         for (const p of merged.projects) {
           if (!merged.workflowByProject[p.id]) {
             merged.workflowByProject[p.id] = createProjectWorkflow(p.phases);
@@ -724,7 +825,17 @@ export const useAppStore = create<AppStore>()(
           if (!merged.reportHistoryByProject[p.id]) {
             merged.reportHistoryByProject[p.id] = [];
           }
+          if (!merged.auditSettingsByProject[p.id]) {
+            merged.auditSettingsByProject[p.id] = createProjectAuditSettings({
+              depth: merged.settings.audit.depth,
+              scan: {
+                autoScan: merged.settings.audit.autoScan,
+                weeklyReport: merged.settings.audit.weeklyReport,
+              },
+            });
+          }
         }
+        merged.version = APP_DB_VERSION;
         return merged;
       },
     },

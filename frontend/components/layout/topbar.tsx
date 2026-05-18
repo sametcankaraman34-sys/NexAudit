@@ -1,10 +1,10 @@
 "use client";
 
-import { Menu, Plus, Search } from "lucide-react";
+import { Menu, Plus } from "lucide-react";
+import { GlobalSearchField } from "@/components/search/global-search-field";
 import Link from "next/link";
 import { ProjectSwitcher } from "@/components/project-switcher/project-switcher";
 import { NotificationBell } from "@/components/notifications/notification-center";
-import { UI_SHORTCUT_SEARCH } from "@/constants/ui-tr";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
@@ -29,17 +29,7 @@ export function Topbar({ onMenuClick, showMenuButton = false }: TopbarProps) {
 
         <ProjectSwitcher />
 
-        <div className="relative mx-auto hidden min-w-0 max-w-xl flex-1 lg:block">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
-          <input
-            type="search"
-            placeholder="Proje, domain veya menü ara..."
-            className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] pl-11 pr-16 text-ui-secondary text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/15"
-          />
-          <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 text-[13px] text-[var(--text-secondary)] sm:inline">
-            {UI_SHORTCUT_SEARCH}
-          </kbd>
-        </div>
+        <GlobalSearchField className="mx-auto hidden min-w-0 max-w-xl flex-1 lg:block" />
 
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <NotificationBell />
@@ -57,14 +47,7 @@ export function Topbar({ onMenuClick, showMenuButton = false }: TopbarProps) {
       </div>
 
       <div className="border-t border-[var(--border)] px-4 pb-3 pt-0 lg:hidden">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
-          <input
-            type="search"
-            placeholder="Ara..."
-            className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] pl-10 pr-3 text-ui-secondary text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/15"
-          />
-        </div>
+        <GlobalSearchField compact />
       </div>
     </header>
   );

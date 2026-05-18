@@ -9,6 +9,7 @@ import { mockNotifications } from "@/data/mock-notifications";
 import { mockProjects } from "@/data/mock-projects";
 import { mockIntegrations, mockTeamMembers } from "@/data/mock-settings";
 import { DEMO_USER } from "@/constants/navigation";
+import { createProjectAuditSettings } from "@/services/default-audit-settings";
 import { createProjectWorkflow } from "@/services/workflow-factory";
 import { APP_DB_VERSION, type AppDatabase, type AppSettings } from "@/types/app-database";
 import type { BriefItem, Issue, Notification, Project } from "@/types";
@@ -81,6 +82,7 @@ export function createInitialDatabase(): AppDatabase {
   const workflowByProject: AppDatabase["workflowByProject"] = {};
   const activityByProject: Record<string, ActivityEvent[]> = {};
   const reportHistoryByProject: Record<string, AppDatabase["reportHistoryByProject"][string]> = {};
+  const auditSettingsByProject: AppDatabase["auditSettingsByProject"] = {};
 
   for (const project of mockProjects) {
     const issueSource =
@@ -93,6 +95,7 @@ export function createInitialDatabase(): AppDatabase {
     }));
     workflowByProject[project.id] = createProjectWorkflow(project.phases);
     reportHistoryByProject[project.id] = [];
+    auditSettingsByProject[project.id] = createProjectAuditSettings();
     activityByProject[project.id] =
       project.status === "draft"
         ? []
@@ -126,6 +129,7 @@ export function createInitialDatabase(): AppDatabase {
     workflowByProject,
     activityByProject,
     reportHistoryByProject,
+    auditSettingsByProject,
     settings: defaultSettings(),
   };
 }

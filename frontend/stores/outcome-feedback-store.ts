@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { getOutcomePresentation } from "@/lib/outcome-copy";
-import { toast } from "@/lib/nex-toast";
+import { notify } from "@/services/notification-service";
 import {
   isModalOutcome,
   type OutcomeEvent,
@@ -19,11 +19,12 @@ function dispatchToastOutcome(event: OutcomeEvent) {
         ? "info"
         : "success";
 
-  toast({
+  notify({
     variant,
     title: copy.title,
     description: copy.description,
     duration: event.type === "project.deleted" ? 3200 : 3800,
+    persist: false,
     action:
       copy.actionLabel && copy.actionHref
         ? { label: copy.actionLabel, href: copy.actionHref }

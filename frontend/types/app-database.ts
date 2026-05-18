@@ -13,11 +13,11 @@ export interface TeamMemberRecord {
   id: string;
   name: string;
   email: string;
-  role: string;
+  role: TeamMemberRole;
   initials: string;
 }
 
-export const APP_DB_VERSION = 3;
+export const APP_DB_VERSION = 4;
 export const STORAGE_KEY = "nexaudit-app-db";
 
 export interface NotificationPreferences {
@@ -38,11 +38,38 @@ export interface ProfileSettings {
   language: string;
 }
 
+export type AuditDepth = "standard" | "deep" | "expert";
+
 export interface AuditSettings {
-  depth: "standard" | "deep" | "expert";
+  depth: AuditDepth;
   autoScan: boolean;
   weeklyReport: boolean;
 }
+
+export interface ProjectAuditSettings {
+  depth: AuditDepth;
+  modules: {
+    website: boolean;
+    seo: boolean;
+    ads: boolean;
+  };
+  checks: {
+    mobile: boolean;
+    deepSeo: boolean;
+    a11y: boolean;
+    conversion: boolean;
+  };
+  scan: {
+    autoScan: boolean;
+    weeklyReport: boolean;
+    recursive: boolean;
+    screenshot: boolean;
+    lighthouse: boolean;
+    maxDepth: number;
+  };
+}
+
+export type TeamMemberRole = "owner" | "admin" | "editor" | "viewer";
 
 export interface AppSettings {
   profile: ProfileSettings;
@@ -69,6 +96,7 @@ export interface AppDatabase {
   workflowByProject: Record<string, ProjectWorkflowMap>;
   activityByProject: Record<string, ActivityEvent[]>;
   reportHistoryByProject: Record<string, AuditTimelineEntry[]>;
+  auditSettingsByProject: Record<string, ProjectAuditSettings>;
   settings: AppSettings;
 }
 

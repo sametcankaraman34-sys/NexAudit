@@ -1,3 +1,5 @@
+import type { TeamMemberRecord } from "@/types/app-database";
+
 export type SettingsSectionId =
   | "profile"
   | "notifications"
@@ -26,7 +28,7 @@ export const SETTINGS_SECTIONS: {
   { id: "danger", label: "Tehlikeli Bölge", description: "Silme ve sıfırlama", group: "advanced" },
 ];
 
-export const mockTeamMembers = [
+export const mockTeamMembers: TeamMemberRecord[] = [
   { id: "u1", name: "Ajans Demo", email: "demo@nexaudit.app", role: "owner", initials: "AD" },
   { id: "u2", name: "Elif Kaya", email: "elif@ajansdemo.com", role: "admin", initials: "EK" },
   { id: "u3", name: "Mert Yılmaz", email: "mert@ajansdemo.com", role: "editor", initials: "MY" },

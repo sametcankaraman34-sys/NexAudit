@@ -20,21 +20,6 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-function selectDb(state: ReturnType<typeof useAppStore.getState>): AppDatabase {
-  return {
-    version: state.version,
-    activeProjectId: state.activeProjectId,
-    projects: state.projects,
-    issuesByProject: state.issuesByProject,
-    notificationsByProject: state.notificationsByProject,
-    briefItemsByProject: state.briefItemsByProject,
-    workflowByProject: state.workflowByProject,
-    activityByProject: state.activityByProject,
-    reportHistoryByProject: state.reportHistoryByProject,
-    settings: state.settings,
-  };
-}
-
 export function useActiveProject(): ProjectContextValue {
   const activeProjectId = useAppStore((s) => s.activeProjectId);
   const projects = useAppStore((s) => s.projects);
@@ -45,6 +30,7 @@ export function useActiveProject(): ProjectContextValue {
   const activityByProject = useAppStore((s) => s.activityByProject);
   const reportHistoryByProject = useAppStore((s) => s.reportHistoryByProject);
   const settings = useAppStore((s) => s.settings);
+  const auditSettingsByProject = useAppStore((s) => s.auditSettingsByProject);
   const version = useAppStore((s) => s.version);
   const setActiveProjectId = useAppStore((s) => s.setActiveProjectId);
   const isSwitching = useAppStore((s) => s.isSwitching);
@@ -61,12 +47,14 @@ export function useActiveProject(): ProjectContextValue {
       workflowByProject,
       activityByProject,
       reportHistoryByProject,
+      auditSettingsByProject,
       settings,
     };
     return getProjectWorkspaceFromDb(db, activeProjectId);
   }, [
     activeProjectId,
     activityByProject,
+    auditSettingsByProject,
     briefItemsByProject,
     issuesByProject,
     notificationsByProject,

@@ -26,11 +26,21 @@ import { PremiumSelect } from "@/components/ui/premium-select";
 import { DEMO_USER } from "@/constants/navigation";
 import { LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from "@/constants/ui-tr";
 import type { SettingsSectionId } from "@/data/mock-settings";
-import { mockIntegrations, mockTeamMembers } from "@/data/mock-settings";
-import { NexToast } from "@/lib/nex-toast";
+import {
+  clearReportHistoryWithFeedback,
+  inviteTeamMember,
+  resetDatabaseWithFeedback,
+  saveProfileSettings,
+  saveProjectAuditSettings,
+  toggleIntegrationWithFeedback,
+  updateTeamMemberRole,
+} from "@/services/settings-actions";
+import { getProjectAuditSettings } from "@/services/settings-service";
+import { NotificationService } from "@/services/notification-service";
 import { useActiveProject } from "@/lib/project-context";
 import { useAppStore } from "@/stores/app-store";
 import { cn } from "@/lib/utils";
+import type { TeamMemberRole } from "@/types/app-database";
 
 function useToggle(initial: boolean) {
   const [value, setValue] = useState(initial);
@@ -64,7 +74,6 @@ export function SettingsPanel({ section }: { section: SettingsSectionId }) {
 
 function ProfilePanel() {
   const profile = useAppStore((s) => s.settings.profile);
-  const updateSettings = useAppStore((s) => s.updateSettings);
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
   const [companyName, setCompanyName] = useState(profile.companyName);
@@ -73,9 +82,9 @@ function ProfilePanel() {
   const [language, setLanguage] = useState(profile.language);
 
   const save = () => {
-    void updateSettings({
+    void saveProfileSettings({
       profile: { name, email, companyName, website, timezone, language },
-    }).then(() => NexToast.success("Ayarlar kaydedildi", "Profil bilgilerin güncellendi."));
+    });
   };
 
   return (
@@ -95,7 +104,7 @@ function ProfilePanel() {
               type="button"
               variant="outline"
               className="btn-transition h-9 rounded-lg border-[var(--border)] text-xs"
-              onClick={() => NexToast.success("Yükleme", "Avatar yükleme yakında eklenecek.")}
+              onClick={() => NotificationService.info("Yükleme", "Avatar yükleme yakında eklenecek.")}
             >
               Avatar yükle
             </Button>
@@ -161,16 +170,11 @@ function NotificationsPanel() {
 }
 
 function AuditPanel() {
-  const audit = useAppStore((s) => s.settings.audit);
-  const updateSettings = useAppStore((s) => s.updateSettings);
-  const [depth, setDepth] = useState(audit.depth);
-  const [web, setWeb] = useToggle(true);
-  const [seo, setSeo] = useToggle(true);
-  const [ads, setAds] = useToggle(true);
-  const [mobile, setMobile] = useToggle(true);
-  const [a11y, setA11y] = useToggle(true);
-  const [conversion, setConversion] = useToggle(true);
-  const [deepSeo, setDeepSeo] = useToggle(false);
+  const { activeProjectId } = useActiveProject();
+  const audit =
+    useAppStore((s) => s.auditSettingsByProject[activeProjectId]) ??
+    getProjectAuditSettings(activeProjectId);
+  const updateAudit = useAppStore((s) => s.updateProjectAuditSettings);
 
   return (
     <div className="settings-panel space-y-4">
@@ -180,9 +184,24 @@ function AuditPanel() {
         description="Modül, derinlik ve analiz kapsamı"
       />
       <SettingsSectionCard title="Aktif modüller">
-        <ToggleRow label="Web Tasarım Denetimi" checked={web} onChange={setWeb} bordered />
-        <ToggleRow label="SEO Optimizasyonu" checked={seo} onChange={setSeo} bordered />
-        <ToggleRow label="Reklam & Dönüşüm" checked={ads} onChange={setAds} bordered />
+        <ToggleRow
+          label="Web Tasarım Denetimi"
+          checked={audit.modules.website}
+          onChange={(v) => void updateAudit(activeProjectId, { modules: { ...audit.modules, website: v } })}
+          bordered
+        />
+        <ToggleRow
+          label="SEO Optimizasyonu"
+          checked={audit.modules.seo}
+          onChange={(v) => void updateAudit(activeProjectId, { modules: { ...audit.modules, seo: v } })}
+          bordered
+        />
+        <ToggleRow
+          label="Reklam & Dönüşüm"
+          checked={audit.modules.ads}
+          onChange={(v) => void updateAudit(activeProjectId, { modules: { ...audit.modules, ads: v } })}
+          bordered
+        />
       </SettingsSectionCard>
       <SettingsSectionCard title="Analiz derinliği">
         <PremiumSelect
@@ -193,35 +212,48 @@ function AuditPanel() {
             { value: "deep", label: "Derin" },
             { value: "expert", label: "Uzman" },
           ]}
-          value={depth}
-          onValueChange={(v) => v && setDepth(v as typeof depth)}
+          value={audit.depth}
+          onValueChange={(v) => v && void updateAudit(activeProjectId, { depth: v as typeof audit.depth })}
         />
         <div className="mt-4 space-y-0">
-          <ToggleRow label="Mobil kontroller" checked={mobile} onChange={setMobile} bordered />
-          <ToggleRow label="SEO derin tarama" checked={deepSeo} onChange={setDeepSeo} bordered />
-          <ToggleRow label="Erişilebilirlik kontrolleri" checked={a11y} onChange={setA11y} bordered />
-          <ToggleRow label="Dönüşüm analizi" checked={conversion} onChange={setConversion} />
+          <ToggleRow
+            label="Mobil kontroller"
+            checked={audit.checks.mobile}
+            onChange={(v) => void updateAudit(activeProjectId, { checks: { ...audit.checks, mobile: v } })}
+            bordered
+          />
+          <ToggleRow
+            label="SEO derin tarama"
+            checked={audit.checks.deepSeo}
+            onChange={(v) => void updateAudit(activeProjectId, { checks: { ...audit.checks, deepSeo: v } })}
+            bordered
+          />
+          <ToggleRow
+            label="Erişilebilirlik kontrolleri"
+            checked={audit.checks.a11y}
+            onChange={(v) => void updateAudit(activeProjectId, { checks: { ...audit.checks, a11y: v } })}
+            bordered
+          />
+          <ToggleRow
+            label="Dönüşüm analizi"
+            checked={audit.checks.conversion}
+            onChange={(v) => void updateAudit(activeProjectId, { checks: { ...audit.checks, conversion: v } })}
+          />
         </div>
       </SettingsSectionCard>
       <SaveBar
-        onSave={() => {
-          void updateSettings({
-            audit: { ...audit, depth },
-          }).then(() => NexToast.success("Denetim ayarları kaydedildi"));
-        }}
+        onSave={() => void saveProjectAuditSettings(activeProjectId, audit)}
       />
     </div>
   );
 }
 
 function ScanPanel() {
-  const audit = useAppStore((s) => s.settings.audit);
-  const updateSettings = useAppStore((s) => s.updateSettings);
-  const [auto, setAuto] = useState(audit.autoScan);
-  const [scheduled, setScheduled] = useState(audit.weeklyReport);
-  const [recursive, setRecursive] = useToggle(true);
-  const [screenshot, setScreenshot] = useToggle(false);
-  const [lighthouse, setLighthouse] = useToggle(true);
+  const { activeProjectId } = useActiveProject();
+  const audit =
+    useAppStore((s) => s.auditSettingsByProject[activeProjectId]) ??
+    getProjectAuditSettings(activeProjectId);
+  const updateAudit = useAppStore((s) => s.updateProjectAuditSettings);
 
   return (
     <div className="settings-panel space-y-4">
@@ -231,23 +263,55 @@ function ScanPanel() {
         description="Otomatik tarama, zamanlama ve sayfa derinliği"
       />
       <SettingsSectionCard title="Tarama modu">
-        <ToggleRow label="Otomatik tarama" description="Proje oluşturulunca ilk tarama" checked={auto} onChange={setAuto} bordered />
-        <ToggleRow label="Zamanlanmış tarama" description="Haftalık periyodik denetim" checked={scheduled} onChange={setScheduled} bordered />
-        <ToggleRow label="Özyinelemeli sayfa taraması" checked={recursive} onChange={setRecursive} bordered />
+        <ToggleRow
+          label="Otomatik tarama"
+          description="Proje oluşturulunca ilk tarama"
+          checked={audit.scan.autoScan}
+          onChange={(v) => void updateAudit(activeProjectId, { scan: { ...audit.scan, autoScan: v } })}
+          bordered
+        />
+        <ToggleRow
+          label="Zamanlanmış tarama"
+          description="Haftalık periyodik denetim"
+          checked={audit.scan.weeklyReport}
+          onChange={(v) => void updateAudit(activeProjectId, { scan: { ...audit.scan, weeklyReport: v } })}
+          bordered
+        />
+        <ToggleRow
+          label="Özyinelemeli sayfa taraması"
+          checked={audit.scan.recursive}
+          onChange={(v) => void updateAudit(activeProjectId, { scan: { ...audit.scan, recursive: v } })}
+          bordered
+        />
         <SettingsRow label="Maksimum sayfa derinliği" description="Site haritası derinliği">
-          <Input type="number" defaultValue="5" className={cn(settingsInputClass, "sm:max-w-[100px]")} />
+          <Input
+            type="number"
+            value={audit.scan.maxDepth}
+            onChange={(e) =>
+              void updateAudit(activeProjectId, {
+                scan: { ...audit.scan, maxDepth: Number(e.target.value) || 1 },
+              })
+            }
+            className={cn(settingsInputClass, "sm:max-w-[100px]")}
+          />
         </SettingsRow>
       </SettingsSectionCard>
       <SettingsSectionCard title="Gelişmiş">
-        <ToggleRow label="Ekran görüntüsü analizi" checked={screenshot} onChange={setScreenshot} bordered />
-        <ToggleRow label="Lighthouse modu" description="Performans metrikleri" checked={lighthouse} onChange={setLighthouse} />
+        <ToggleRow
+          label="Ekran görüntüsü analizi"
+          checked={audit.scan.screenshot}
+          onChange={(v) => void updateAudit(activeProjectId, { scan: { ...audit.scan, screenshot: v } })}
+          bordered
+        />
+        <ToggleRow
+          label="Lighthouse modu"
+          description="Performans metrikleri"
+          checked={audit.scan.lighthouse}
+          onChange={(v) => void updateAudit(activeProjectId, { scan: { ...audit.scan, lighthouse: v } })}
+        />
       </SettingsSectionCard>
       <SaveBar
-        onSave={() => {
-          void updateSettings({
-            audit: { ...audit, autoScan: auto, weeklyReport: scheduled },
-          }).then(() => NexToast.success("Tarama ayarları kaydedildi"));
-        }}
+        onSave={() => void saveProjectAuditSettings(activeProjectId, audit, "Tarama ayarları kaydedildi")}
       />
     </div>
   );
@@ -255,7 +319,6 @@ function ScanPanel() {
 
 function IntegrationsPanel() {
   const integrations = useAppStore((s) => s.settings.integrations);
-  const toggleIntegration = useAppStore((s) => s.toggleIntegration);
 
   return (
     <div className="settings-panel space-y-4">
@@ -289,12 +352,7 @@ function IntegrationsPanel() {
                 variant="outline"
                 className="btn-transition mt-auto h-8 w-full rounded-lg border-[var(--border)] text-xs"
                 onClick={() => {
-                  void toggleIntegration(item.id).then(() =>
-                    NexToast.success(
-                      item.connected ? "Bağlantı kesildi" : "Entegrasyon bağlandı",
-                      item.name,
-                    ),
-                  );
+                  void toggleIntegrationWithFeedback(item.id, item.name);
                 }}
               >
                 {item.connected ? "Bağlantıyı kes" : "Bağlan"}
@@ -308,6 +366,10 @@ function IntegrationsPanel() {
 }
 
 function TeamPanel() {
+  const team = useAppStore((s) => s.settings.team);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<TeamMemberRole>("editor");
+
   return (
     <div className="settings-panel space-y-4">
       <SettingsPanelHeader
@@ -317,10 +379,10 @@ function TeamPanel() {
       />
       <SettingsSectionCard
         title="Ekip üyeleri"
-        description="Ajans Demo · 3 üye"
+        description={`${team.length} üye`}
       >
         <ul className="space-y-2">
-          {mockTeamMembers.map((member) => (
+          {team.map((member) => (
             <li
               key={member.id}
               className="flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]/50 p-3 sm:flex-row sm:items-center sm:justify-between"
@@ -343,18 +405,43 @@ function TeamPanel() {
                   { value: "viewer", label: "Görüntüleyici" },
                 ]}
                 value={member.role}
+                onValueChange={(v) => v && void updateTeamMemberRole(member.id, v as TeamMemberRole)}
                 className="sm:min-w-[140px]"
               />
             </li>
           ))}
         </ul>
-        <Button
-          type="button"
-          className="btn-transition mt-4 h-9 rounded-lg bg-[var(--primary)] text-xs text-white hover:bg-[var(--primary-hover)]"
-          onClick={() => NexToast.success("Davet gönderildi", "Ekip üyesi daveti simüle edildi.")}
-        >
-          Üye davet et
-        </Button>
+        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+          <Input
+            type="email"
+            placeholder="eposta@ornek.com"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+            className={settingsInputClass}
+          />
+          <PremiumSelect
+            label=""
+            options={[
+              { value: "admin", label: "Yönetici" },
+              { value: "editor", label: "Editör" },
+              { value: "viewer", label: "Görüntüleyici" },
+            ]}
+            value={inviteRole}
+            onValueChange={(v) => v && setInviteRole(v as TeamMemberRole)}
+            className="sm:min-w-[120px]"
+          />
+          <Button
+            type="button"
+            className="btn-transition h-9 rounded-lg bg-[var(--primary)] text-xs text-white hover:bg-[var(--primary-hover)]"
+            onClick={() => {
+              if (!inviteEmail.trim()) return;
+              void inviteTeamMember(inviteEmail.trim(), inviteRole);
+              setInviteEmail("");
+            }}
+          >
+            Üye davet et
+          </Button>
+        </div>
       </SettingsSectionCard>
       <SettingsSectionCard title="Proje erişimi">
         <SettingsRow label="Varsayılan erişim" description="Yeni projelerde ekip görünürlüğü">
@@ -411,7 +498,7 @@ function BriefPanel() {
         </SettingsRow>
       </SettingsSectionCard>
       <SaveBar
-        onSave={() => NexToast.success("Brief ayarları kaydedildi", "Tercihler uygulandı.")}
+        onSave={() => NotificationService.success("Brief ayarları kaydedildi", "Tercihler uygulandı.")}
       />
     </div>
   );
@@ -446,7 +533,7 @@ function AiPanel() {
         </div>
       </SettingsSectionCard>
       <SaveBar
-        onSave={() => NexToast.success("Yapay zeka ayarları kaydedildi", "Tercihler uygulandı.")}
+        onSave={() => NotificationService.success("Yapay zeka ayarları kaydedildi", "Tercihler uygulandı.")}
       />
     </div>
   );
@@ -456,9 +543,6 @@ function DangerPanel() {
   const { activeProject } = useActiveProject();
   const deleteProject = useAppStore((s) => s.deleteProject);
   const archiveProject = useAppStore((s) => s.archiveProject);
-  const resetDatabase = useAppStore((s) => s.resetDatabase);
-  const clearReportHistory = useAppStore((s) => s.clearReportHistory);
-
   return (
     <div className="settings-panel space-y-4">
       <SettingsPanelHeader
@@ -506,8 +590,7 @@ function DangerPanel() {
           variant="outline"
           onAction={() => {
             if (window.confirm("Tüm uygulama verileri sıfırlansın mı?")) {
-              resetDatabase();
-              NexToast.success("Veriler sıfırlandı", "Varsayılan demo verisi yüklendi.");
+              void resetDatabaseWithFeedback();
             }
           }}
         />
@@ -519,9 +602,7 @@ function DangerPanel() {
           bordered
           onAction={() => {
             if (window.confirm(`${activeProject.name} rapor geçmişi silinsin mi?`)) {
-              void clearReportHistory(activeProject.id).then(() =>
-                NexToast.success("Rapor geçmişi temizlendi"),
-              );
+              void clearReportHistoryWithFeedback(activeProject.id);
             }
           }}
         />
@@ -533,29 +614,11 @@ function DangerPanel() {
           actionLabel="Hesabı sil"
           onAction={() => {
             if (window.confirm("Hesap silme simülasyonu — tüm veriler sıfırlansın mı?")) {
-              resetDatabase();
-              NexToast.success("Hesap sıfırlandı", "Yerel veriler temizlendi.");
+              void resetDatabaseWithFeedback();
             }
           }}
         />
       </SettingsSectionCard>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  defaultValue,
-  type = "text",
-}: {
-  label: string;
-  defaultValue: string;
-  type?: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-[var(--text-primary)]">{label}</label>
-      <Input type={type} defaultValue={defaultValue} className={settingsInputClass} />
     </div>
   );
 }
@@ -587,7 +650,7 @@ function SaveBar({ onSave }: { onSave?: () => void }) {
         type="button"
         onClick={
           onSave ??
-          (() => NexToast.success("Ayarlar kaydedildi", "Tercihlerin güncellendi."))
+          (() => NotificationService.success("Ayarlar kaydedildi", "Tercihlerin güncellendi."))
         }
         className="btn-transition h-10 rounded-xl bg-[var(--primary)] px-5 text-sm font-medium hover:bg-[var(--primary-hover)]"
       >

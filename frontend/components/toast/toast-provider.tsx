@@ -18,10 +18,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { pushLiveNotification } from "@/lib/live-notification-store";
-import { registerToastPush } from "@/lib/nex-toast";
-import type { Notification, NotificationCategory } from "@/types";
-import type { IssueSeverity } from "@/types";
+import { registerNotificationToast } from "@/services/notification-service";
 import type { Toast, ToastInput, ToastVariant } from "@/types/toast";
 import { cn } from "@/lib/utils";
 
@@ -50,34 +47,6 @@ function createId() {
   return `toast-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function toastToLiveNotification(toast: Toast): Notification {
-  const categoryMap: Record<ToastVariant, NotificationCategory> = {
-    success: "audit",
-    info: "system",
-    warning: "seo",
-    critical: "critical",
-    neutral: "system",
-  };
-  const severityMap: Record<ToastVariant, IssueSeverity> = {
-    success: "low",
-    info: "improvement",
-    warning: "medium",
-    critical: "critical",
-    neutral: "low",
-  };
-  return {
-    id: `live-${toast.id}`,
-    title: toast.title,
-    message: toast.description ?? "",
-    time: "Az önce",
-    read: false,
-    category: categoryMap[toast.variant],
-    severity: severityMap[toast.variant],
-    actionHref: toast.action?.href ?? "/",
-    actionLabel: toast.action?.label ?? "Görüntüle",
-  };
-}
-
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -104,11 +73,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     };
 
     setToasts((prev) => [toast, ...prev].slice(0, MAX_VISIBLE + 2));
-    pushLiveNotification(toastToLiveNotification(toast));
     return id;
   }, []);
 
-  useEffect(() => registerToastPush(push), [push]);
+  useEffect(() => registerNotificationToast(push), [push]);
 
   const value = useMemo(() => ({ push, dismiss }), [push, dismiss]);
 

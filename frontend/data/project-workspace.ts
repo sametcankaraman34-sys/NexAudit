@@ -1,7 +1,6 @@
 import {
   mockAuditPhases,
   mockDashboardStats,
-  mockIssueDistribution,
   mockRecommendations,
 } from "@/data/mock-audit";
 import {

@@ -10,8 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getUnreadNotificationCount } from "@/data/mock-notifications";
-import { subscribeLiveNotifications } from "@/lib/live-notification-store";
+import { getUnreadNotificationCount } from "@/services/notification-helpers";
 import { useActiveProject, useProjectWorkspace } from "@/lib/project-context";
 import { useAppStore } from "@/stores/app-store";
 import type { Notification, NotificationCategory } from "@/types";
@@ -50,11 +49,7 @@ export function NotificationBell() {
   const markRead = useAppStore((s) => s.markNotificationRead);
   const markAllRead = useAppStore((s) => s.markAllNotificationsRead);
   const clearAll = useAppStore((s) => s.clearNotifications);
-  const [liveItems, setLiveItems] = useState<Notification[]>([]);
-  const items = useMemo(
-    () => [...liveItems, ...projectNotifications],
-    [liveItems, projectNotifications],
-  );
+  const items = projectNotifications;
   const unreadCount = useMemo(() => getUnreadNotificationCount(items), [items]);
 
   const sortedItems = useMemo(() => {
@@ -68,16 +63,9 @@ export function NotificationBell() {
   const markReadLocal = useCallback(
     (id: string) => {
       markRead(activeProjectId, id);
-      setLiveItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
     },
     [activeProjectId, markRead],
   );
-
-  useEffect(() => {
-    return subscribeLiveNotifications((notification) => {
-      setLiveItems((prev) => [notification, ...prev]);
-    });
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -147,7 +135,6 @@ export function NotificationBell() {
                       className="text-[12px] font-medium text-[var(--primary)] hover:underline"
                       onClick={() => {
                         markAllRead(activeProjectId);
-                        setLiveItems((prev) => prev.map((n) => ({ ...n, read: true })));
                       }}
                     >
                       Tümünü oku
@@ -157,7 +144,6 @@ export function NotificationBell() {
                       className="text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--danger)]"
                       onClick={() => {
                         clearAll(activeProjectId);
-                        setLiveItems([]);
                       }}
                     >
                       Temizle
