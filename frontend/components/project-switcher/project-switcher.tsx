@@ -101,7 +101,7 @@ export function ProjectSwitcher() {
           <div className="flex items-center justify-between gap-2">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
-                Workspace
+                Çalışma alanı
               </p>
               <p className="mt-0.5 text-sm font-medium text-[var(--text-primary)]">
                 Proje seçin

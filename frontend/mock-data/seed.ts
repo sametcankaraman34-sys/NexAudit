@@ -117,7 +117,7 @@ export function createInitialDatabase(): AppDatabase {
               id: `${project.id}-act-seed-2`,
               type: "issue.detected",
               phaseId: "website",
-              message: `${project.criticalIssues} kritik issue bulundu`,
+              message: `${project.criticalIssues} kritik sorun bulundu`,
               timeLabel: "14:23",
               createdAt: Date.now() - 240_000,
             },

@@ -124,7 +124,8 @@ export function NewProjectView() {
             >
               <Input
                 id="domain"
-                type="url"
+                type="text"
+                inputMode="url"
                 placeholder="ornek.com"
                 className={inputClassName}
                 required

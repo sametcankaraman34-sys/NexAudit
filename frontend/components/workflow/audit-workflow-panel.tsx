@@ -114,11 +114,24 @@ export function AuditWorkflowPanel({ projectId, phaseId, className }: AuditWorkf
           </div>
         )}
 
+        {phaseDone && !phaseLocked && (
+          <p className="mt-4 text-xs text-[var(--text-secondary)]">
+            Yeniden taramak için önce &ldquo;Aşamayı yeniden aç&rdquo; düğmesini kullanın.
+          </p>
+        )}
+
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <button
             type="button"
             disabled={phaseLocked || phaseDone || wf.isScanning || wf.isLoading}
             onClick={() => void handleScan()}
+            title={
+              phaseDone
+                ? "Aşama tamamlandı — yeniden taramak için önce aşamayı yeniden açın"
+                : phaseLocked
+                  ? "Önceki aşama tamamlanmalı"
+                  : undefined
+            }
             className={cn(
               "workflow-scan-cta phase-cta-primary inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white sm:min-w-[200px] sm:flex-none",
               (phaseLocked || phaseDone || wf.isScanning) && "cursor-not-allowed opacity-50",

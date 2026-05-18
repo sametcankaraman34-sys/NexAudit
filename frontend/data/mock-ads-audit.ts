@@ -59,7 +59,7 @@ export const trackingCards: TrackingCard[] = [
     issues: 2,
     optimizationGain: 15,
     barValues: [55, 52, 58, 54],
-    detail: "ViewContent var; AddToCart yok",
+    detail: "İçerik görüntüleme var; sepete ekleme yok",
   },
   {
     id: "tc-4",
@@ -83,7 +83,7 @@ export const trackingCards: TrackingCard[] = [
   },
   {
     id: "tc-6",
-    title: "Server-side tagging",
+    title: "Sunucu tarafı etiketleme",
     status: "missing",
     eventsDetected: 0,
     issues: 3,
@@ -139,7 +139,7 @@ export const landingInsights: LandingInsight[] = [
 export const adsIssues: IntelligenceIssue[] = [
   {
     id: "ads-1",
-    title: "Purchase event çift sayımı",
+    title: "Satın alma eventi çift sayımı",
     location: "GTM + gtag",
     severity: "critical",
     status: "detected",
@@ -150,7 +150,7 @@ export const adsIssues: IntelligenceIssue[] = [
   },
   {
     id: "ads-2",
-    title: "Thank-you sayfası event yok",
+    title: "Teşekkür sayfasında event yok",
     location: "İletişim teşekkür",
     severity: "high",
     status: "detected",
@@ -183,7 +183,7 @@ export const adsIssues: IntelligenceIssue[] = [
 export const adsMetricFindings: MetricFinding[] = [
   {
     id: "amf-1",
-    title: "Event coverage",
+    title: "Event kapsamı",
     description: "Önerilen 11 event'ten 6'sı eksik",
     severity: "critical",
     metric: "55",
@@ -191,7 +191,7 @@ export const adsMetricFindings: MetricFinding[] = [
   },
   {
     id: "amf-2",
-    title: "Consent mode",
+    title: "Onay modu",
     description: "EEA trafiği için Consent Mode v2 kısmi",
     severity: "high",
     metric: "2",
@@ -199,7 +199,7 @@ export const adsMetricFindings: MetricFinding[] = [
   },
   {
     id: "amf-3",
-    title: "Attribution window",
+    title: "Atıf penceresi",
     description: "View-through ile click-through karışık rapor",
     severity: "medium",
     metric: "7",
@@ -207,7 +207,7 @@ export const adsMetricFindings: MetricFinding[] = [
   },
   {
     id: "amf-4",
-    title: "Enhanced conversions",
+    title: "Gelişmiş dönüşümler",
     description: "Hash'li e-posta gönderimi kapalı",
     severity: "high",
     metric: "0",

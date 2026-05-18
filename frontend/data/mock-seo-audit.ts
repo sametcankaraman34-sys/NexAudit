@@ -33,7 +33,7 @@ export const seoSummary: AuditIntelligenceSummary = {
 export const seoCategories: AnalysisCategory[] = [
   {
     id: "technical",
-    title: "Technical SEO",
+    title: "Teknik SEO",
     score: 62,
     issueCount: 5,
     criticalCount: 1,
@@ -46,7 +46,7 @@ export const seoCategories: AnalysisCategory[] = [
   },
   {
     id: "meta",
-    title: "Meta Structure",
+    title: "Meta yapısı",
     score: 48,
     issueCount: 8,
     criticalCount: 2,
@@ -54,12 +54,12 @@ export const seoCategories: AnalysisCategory[] = [
     barValues: [42, 50, 45, 52],
     metrics: [
       { label: "Title tamamlık", value: "%71" },
-      { label: "Meta description", value: "6 eksik" },
+      { label: "Meta açıklama", value: "6 eksik" },
     ],
   },
   {
     id: "content",
-    title: "Content Quality",
+    title: "İçerik kalitesi",
     score: 65,
     issueCount: 4,
     criticalCount: 0,
@@ -67,12 +67,12 @@ export const seoCategories: AnalysisCategory[] = [
     barValues: [70, 62, 68, 60],
     metrics: [
       { label: "Kelime / sayfa", value: "842 ort." },
-      { label: "Thin content", value: "2 sayfa" },
+      { label: "Zayıf içerik", value: "2 sayfa" },
     ],
   },
   {
     id: "keywords",
-    title: "Keyword Optimization",
+    title: "Anahtar kelime optimizasyonu",
     score: 52,
     issueCount: 7,
     criticalCount: 1,
@@ -80,12 +80,12 @@ export const seoCategories: AnalysisCategory[] = [
     barValues: [48, 55, 50, 54],
     metrics: [
       { label: "Hedef KW eşleşme", value: "%54" },
-      { label: "Cannibalization", value: "2 çift" },
+      { label: "Kanibalizasyon", value: "2 çift" },
     ],
   },
   {
     id: "internal",
-    title: "Internal Linking",
+    title: "İç bağlantılar",
     score: 71,
     issueCount: 3,
     criticalCount: 0,
@@ -98,7 +98,7 @@ export const seoCategories: AnalysisCategory[] = [
   },
   {
     id: "schema",
-    title: "Schema Markup",
+    title: "Şema işaretlemesi",
     score: 38,
     issueCount: 6,
     criticalCount: 2,
@@ -106,25 +106,25 @@ export const seoCategories: AnalysisCategory[] = [
     barValues: [35, 40, 38, 42],
     metrics: [
       { label: "JSON-LD", value: "3 / 8 tip" },
-      { label: "Rich result", value: "Uygun değil" },
+      { label: "Zengin sonuç", value: "Uygun değil" },
     ],
   },
   {
     id: "mobile-seo",
-    title: "Mobile SEO",
+    title: "Mobil SEO",
     score: 74,
     issueCount: 2,
     criticalCount: 0,
     optimizationGain: 7,
     barValues: [78, 72, 76, 70],
     metrics: [
-      { label: "Mobile-first", value: "Evet" },
-      { label: "Viewport", value: "OK" },
+      { label: "Mobil öncelik", value: "Evet" },
+      { label: "Viewport", value: "Tamam" },
     ],
   },
   {
     id: "speed-seo",
-    title: "Page Speed SEO",
+    title: "Sayfa hızı (SEO)",
     score: 55,
     issueCount: 5,
     criticalCount: 1,

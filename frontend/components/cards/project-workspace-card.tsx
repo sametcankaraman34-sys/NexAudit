@@ -242,7 +242,7 @@ export function ProjectWorkspaceCard({
             </div>
 
             <dl className="grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-3">
-              <MetricRow label="Açık issue" value={String(openIssues)} tone="danger" />
+              <MetricRow label="Açık sorun" value={String(openIssues)} tone="danger" />
               <MetricRow label="Çözülen" value={String(resolvedIssues)} tone="success" />
               <MetricRow
                 label="Brief uyumu"
